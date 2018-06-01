@@ -459,7 +459,7 @@ public class BootloaderService extends IntentService {
             } else if (adsBean.getFile_type() == AdsBean.FILE_FLOAT_GIF) {
                 showGifPlay(inflater, context, wm, params, adsBean, localPath);
             } else {
-                Log.d(TAG, "showAdsDialog:--> showImage    ");
+                Log.d(TAG, "showAdsDialog: - to -> showImage    ");
                 showImage(context, wm, params, adsBean, localPath);
             }
 
