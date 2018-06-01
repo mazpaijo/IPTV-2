@@ -1064,7 +1064,7 @@ public class BootloaderService extends IntentService {
             @Override
             public void onFail(Object... o) {
 
-                Log.e("myShow", "this is brack");
+                Log.e("myShow", "fail this is brack");
                 if (adsBean.getIs_back() == 0) {
                     hideAdsDialog(context, adsBean);
                 }
