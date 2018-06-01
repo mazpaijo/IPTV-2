@@ -1038,8 +1038,7 @@ public class BootloaderService extends IntentService {
             @Override
             public void onFinish(Object... o) {
 //                int keyCode = (int)o[0];
-
-                Log.d("myShow", "onFinish: ");
+                Log.d("myShow", "onFinish: 点击按钮完毕～ ");
                 hideAdsDialog(context, adsBean);
                 //行为日志上报
                 String user = Utils.getTvUserId(context);
