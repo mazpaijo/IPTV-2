@@ -1054,7 +1054,7 @@ public class BootloaderService extends IntentService {
                             Log.d(TAG, "run: myShow --  post_delay ");
                             showWeb(adsBean);
                         }
-                    }, 368);
+                    }, 386);
                 }else {
                                   AdsKeyEventHandler.onKeyOk(context, adsBean);
                 }
