@@ -374,7 +374,6 @@ public class BootloaderService extends IntentService {
 
     private AudioManager mAm;
 
-
     protected void showAdsDialog(final AdsBean adsBean, String localPath) {
         try {
             if (mReceivedMessageIds.keySet().contains(adsBean.getMsg_id())) {
