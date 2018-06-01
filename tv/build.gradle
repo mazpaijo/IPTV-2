@@ -1,0 +1,88 @@
+apply plugin: 'com.android.application'
+apply plugin: 'org.greenrobot.greendao'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "24.0.1"
+    defaultConfig {
+        applicationId "com.iptv.maopao"
+        minSdkVersion 17
+        targetSdkVersion 17
+        versionCode 6
+        versionName "2.3"
+        externalNativeBuild {
+            cmake {
+                cppFlags "-frtti -fexceptions"
+                abiFilters 'x86','armeabi-v7a'
+            }
+        }
+
+    }
+
+    signingConfigs {
+        debug {
+            keyAlias 'SmartHome'
+            keyPassword '202620262026'
+            storeFile file('../keystore')
+    storePassword '20262026'
+}
+
+release {
+    storeFile file("../keystore")
+    storePassword "20262026"
+    keyAlias "SmartHome"
+    keyPassword "202620262026"
+}
+
+}
+
+    buildTypes {
+        debug {
+            debuggable true
+            minifyEnabled true
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+    productFlavors {
+    }
+    sourceSets {
+        main {
+            //jni库的调用会到资源文件夹下libs里面找so文件
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:leanback-v17:23.4.0'
+    compile 'com.android.support:appcompat-v7:23.4.0'
+//    compile 'com.github.bumptech.glide:glide:3.4.+'
+    compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.5'
+    compile files('libs/okhttp-3.2.0.jar')
+    compile files('libs/okio-1.6.0.jar')
+    compile files('libs/ksoap2-android-assembly-3.0.0-RC.4-jar-with-dependencies.jar')
+    compile 'com.google.code.gson:gson:2.2.4'
+    //可选，用于生成application类
+    provided('com.tencent.tinker:tinker-android-anno:1.7.7')
+    //tinker的核心库
+    compile('com.tencent.tinker:tinker-android-lib:1.7.7')
+    //播放器
+    compile 'tv.danmaku.ijk.media:ijkplayer-java:0.6.0'
+    compile 'org.greenrobot:greendao:3.2.0'
+}
+
+greendao {
+    //数据库的schema版本，也可以理解为数据库版本号
+    schemaVersion 1
+    //设置DaoMaster、DaoSession、Dao包名，也就是要放置这些类的包的全路径。
+    daoPackage 'com.iptv.hn.dao'
+    //设置DaoMaster、DaoSession、Dao目录
+    targetGenDir 'src/main/java'
+}

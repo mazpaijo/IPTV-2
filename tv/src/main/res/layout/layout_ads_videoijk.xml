@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.iptv.hn.AdsView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:id="@+id/adsView"
+    android:focusable="true"
+    android:padding="20dp"
+    android:background="#00ffffff">
+    <RelativeLayout
+        android:id="@+id/relativeLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <com.iptv.hn.media.IjkVideoView
+            android:id="@+id/video_view"
+            android:layout_width="320dp"
+            android:layout_height="240dp"/>
+
+        <TextView
+                android:id="@+id/counter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+    </RelativeLayout>
+</com.iptv.hn.AdsView>

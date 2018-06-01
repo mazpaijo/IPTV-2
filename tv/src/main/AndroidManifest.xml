@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.iptv.hn">
+   <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="true" />
+
+    <application
+        android:name=".app.BaseApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Leanback">
+        <activity
+            android:name=".MainActivity"
+            android:banner="@drawable/app_icon_your_company"
+            android:icon="@drawable/app_icon_your_company"
+            android:label="@string/app_name"
+            android:logo="@drawable/app_icon_your_company"
+            android:screenOrientation="landscape"
+            android:theme="@style/DialogHide"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--<service
+            android:name=".service.BootService"
+            android:exported="false" />-->
+
+        <service android:name=".service.BootloaderService"
+            android:enabled="true"
+            android:exported="false"
+            />
+
+        <receiver
+            android:name=".service.BootReceiver"
+            android:enabled="true"
+            android:exported="false"
+            android:permission="android.net.conn.CONNECTIVITY_CHANGE"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".service.MangoLiveReceiver"
+            android:enabled="true"
+            android:exported="true"
+            >
+            <intent-filter>
+                <action android:name="com.hooray.tvchat.livelog" />
+            </intent-filter>
+        </receiver>
+
+        <!--<receiver
+            android:name=".service.BootReceiver"
+            android:enabled="true"
+            android:exported="false"
+            >
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </receiver>-->
+
+        <activity android:name=".AdsDialogActivity"
+            android:theme="@style/Theme.AppCompat"
+            >
+
+        </activity>
+        <activity android:name=".WebViewActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            >
+
+        </activity>
+        <meta-data
+            android:name="TINKER_ID"
+            android:value="tinker_id_6235657" />
+    </application>
+
+</manifest>

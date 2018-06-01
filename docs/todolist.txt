@@ -1,0 +1,7 @@
+ 
+进入和退出场景时数据上报
+  
+日志上报
+
+http://124.232.153.82:9090/mp_web/
+http://124.232.153.82:9090/mp_push/strategy?account=admin&timestamp=12333222
