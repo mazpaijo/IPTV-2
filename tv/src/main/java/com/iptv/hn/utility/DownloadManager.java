@@ -65,7 +65,6 @@ public class DownloadManager {
                     fos.flush();
                     Log.d("h_bl", "文件下载成功");
 
-
                     callback.onFinish(file.getAbsoluteFile());
 
                 } catch (Exception ex) {

@@ -2,8 +2,6 @@ package com.iptv.hn.app;
 
 import android.app.Application;
 
-import com.iptv.hn.dao.GreenDaoManager;
-
 /**
  * Created by hs on 18/5/30.
  */
