@@ -18,7 +18,6 @@ public class BaseApplication extends Application {
     //获取到主线程的上下文
     private static BaseApplication mContext;
 
-
     public static BaseApplication getmContext() {
         if (null == mContext) {
             mContext = new BaseApplication();
