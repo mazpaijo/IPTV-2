@@ -13,7 +13,6 @@ public class BaseApplication extends Application {
     public void onCreate() {
         super.onCreate();
         this.mContext = this;
-        GreenDaoManager.getInstance();
     }
 
     //获取到主线程的上下文
