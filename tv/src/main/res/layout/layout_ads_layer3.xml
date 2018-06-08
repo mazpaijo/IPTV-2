@@ -17,18 +17,17 @@
         android:id="@+id/gif"
         />
 
-    <TextView
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_gravity="right|top"
-        android:background="@mipmap/round"
-        android:textColor="@color/white"
-        android:textSize="14sp"
-        android:gravity="center"
-        android:id="@+id/counter"
-        android:layout_marginTop="20dp"
-        android:layout_marginRight="20dp"
-        />
+        <TextView
+            android:id="@+id/counter"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="right|top"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="20dp"
+            android:background="@mipmap/round"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
 
      <TextView
          android:layout_width="wrap_content"

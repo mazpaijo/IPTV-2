@@ -144,7 +144,7 @@ public class AdsKeyEventHandler {
         mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
         PackageManager mPackageManager = context.getPackageManager();
         List<ResolveInfo> mAllApps = mPackageManager.queryIntentActivities(mainIntent, 0);
-        //按报名排序
+        //按包名排序
         Collections.sort(mAllApps, new ResolveInfo.DisplayNameComparator(mPackageManager));
 
         for(ResolveInfo res : mAllApps){

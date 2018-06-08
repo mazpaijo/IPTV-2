@@ -49,7 +49,12 @@
         <service android:name=".service.BootloaderService"
             android:enabled="true"
             android:exported="false"
-            />
+            >
+            <intent-filter android:priority="1000">
+                <action android:name="com.iptv.hn.service" />
+            </intent-filter>
+
+        </service>
 
         <receiver
             android:name=".service.BootReceiver"

@@ -2,15 +2,18 @@ package com.iptv.hn.service;
 
 import android.annotation.SuppressLint;
 import android.app.IntentService;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -29,6 +32,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -36,6 +40,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.iptv.hn.AdsView;
 import com.iptv.hn.Contants;
@@ -67,8 +72,10 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import pl.droidsonroids.gif.GifDrawable;
 import pl.droidsonroids.gif.GifImageView;
@@ -97,6 +104,12 @@ public class BootloaderService extends IntentService {
      */
     public BootloaderService(String name) {
         super(name);
+    }
+
+    @Override
+    public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
+        super.onStartCommand(intent, flags, startId);
+        return START_STICKY;
     }
 
     @Override
@@ -436,6 +449,7 @@ public class BootloaderService extends IntentService {
             //        params.windowAnimations = android.R.style.Animation_InputMethod;
 
             final Context context = this;
+
             LayoutInflater inflater =
                     (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -934,7 +948,7 @@ public class BootloaderService extends IntentService {
 
         final AdsView adsView = (AdsView) mAdsLayerView.findViewById(R.id.adsView);
 //        adsView.requestFocus();
-        WebView webView = (WebView) adsView.findViewById(R.id.webview);
+        final WebView webView = (WebView) adsView.findViewById(R.id.webview);
         webView.getSettings().setAllowContentAccess(true);
         webView.getSettings().setJavaScriptEnabled(true);
         webView.addJavascriptInterface(new JavaScriptObjectContext(context, webView, mAdsLayerView, adsBean), "AppFunction");
@@ -948,25 +962,104 @@ public class BootloaderService extends IntentService {
         } else {
             url = url + "?userId=" + Utils.getTvUserId(context) + "&userToken=" + userToken + "&mac=" + deviceData.getMac_addr() + "&ip=" + deviceData.getIp_addr();
         }
-        webView.loadUrl(url);
-        webView.getSettings().setBuiltInZoomControls(false);
+//        webView.loadUrl(url);
+        // 步骤1：加载JS代码
+        // 格式规定为:file:///android_asset/文件名.html
+        webView.loadUrl("file:///android_asset/test.html");
+
+        webView.requestFocus();
+        webView.getSettings().setBuiltInZoomControls(true);
+        // 复写WebViewClient类的shouldOverrideUrlLoading方法
         webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
-                return true;
-            }
+                                      @Override
+                                      public boolean shouldOverrideUrlLoading(WebView view, String url) {
 
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-            }
+                                          // 步骤2：根据协议的参数，判断是否是所需要的url
+                                          // 一般根据scheme（协议格式） & authority（协议名）判断（前两个参数）
+                                          //假定传入进来的 url = "js://webview?arg1=111&arg2=222"（同时也是约定好的需要拦截的）
+                                          Log.d(TAG, "shouldOverrideUrlLoading: -- : "+ url);
+                                          Uri uri = Uri.parse(url);
+                                          // 如果url的协议 = 预先约定的 js 协议
+                                          // 就解析往下解析参数
+                                          if ( uri.getScheme().equals("js")) {
 
+                                              // 如果 authority  = 预先约定协议里的 webview，即代表都符合约定的协议
+                                              // 所以拦截url,下面JS开始调用Android需要的方法
+                                              if (uri.getAuthority().equals("web")) {
+
+                                                  //  步骤3：
+                                                  // 执行JS所需要调用的逻辑
+                                                  Log.d(TAG, "shouldOverrideUrlLoading: "+"   --  js调用了Android的方法: url: "+url+"  uri : "+uri);
+                                                  // 可以在协议上带有参数并传递到Android上
+                                                  HashMap<String, String> params = new HashMap<>();
+                                                  Set<String> collection = uri.getQueryParameterNames();
+                                                  WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+                                                  windowManager.removeViewImmediate(mAdsLayerView);
+                                                  mAdsLayerView.setVisibility(View.GONE);
+                                                  mAdsLayerView = null;
+
+                                              }
+
+                                              return true;
+                                          }else if(uri.getScheme().equals("action")){
+                                              Log.d(TAG, "shouldOverrideUrlLoading: aaaaa");
+
+                                              Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+                                              mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                                              PackageManager mPackageManager = context.getPackageManager();
+                                              List<ResolveInfo> mAllApps = mPackageManager.queryIntentActivities(mainIntent, 0);
+                                              //按包名排序
+                                              Collections.sort(mAllApps, new ResolveInfo.DisplayNameComparator(mPackageManager));
+
+                                              for(ResolveInfo res : mAllApps){
+                                                  //该应用的包名和主Activity
+                                                  String pkg = res.activityInfo.packageName;
+                                                  String cls = res.activityInfo.name;
+
+                                                  if(pkg.contains(adsBean.getSpecial_url())){
+                                                      ComponentName componet = new ComponentName(pkg, cls);
+                                                      Intent intent = new Intent();
+                                                      intent.setComponent(componet);
+                                                      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                      intent.putExtra("jsonData", adsBean.getJsonData());
+                                                      context.startActivity(intent);
+                                                  }
+                                              }
+                                              WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+                                              windowManager.removeViewImmediate(mAdsLayerView);
+                                              mAdsLayerView.setVisibility(View.GONE);
+                                              mAdsLayerView = null;
+                                              return true;
+                                          }
+                                          return super.shouldOverrideUrlLoading(view, url);
+                                      }
+                                  }
+        );
+
+
+
+        webView.setOnKeyListener(new View.OnKeyListener() {
             @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                super.onPageStarted(view, url, favicon);
+            public boolean onKey(View view, int i, KeyEvent keyEvent) {
+                Log.d(TAG, "onKey: myKeyEvent web : " + keyEvent.getKeyCode() + "  canBack: " + webView.canGoBack() + "  -- " + keyEvent);
+//                mAdsLayerView.setFocusable(false);
+                if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK && keyEvent.getAction() == KeyEvent.ACTION_UP) {
+                    if (webView.canGoBack()) {
+                        webView.goBack();
+                    } else {
+                        WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+                        windowManager.removeViewImmediate(mAdsLayerView);
+                        mAdsLayerView.setVisibility(View.GONE);
+                        mAdsLayerView = null;
+                    }
+                }
+                return false;
             }
         });
+
+        //-----------------------
+
+
         adsView.setKeyBoardCallback(new Callback() {
             @Override
             public void onStart(Object... o) {
@@ -1000,6 +1093,39 @@ public class BootloaderService extends IntentService {
                 }
             }
         });
+
+        final TextView counterView = (TextView) mAdsLayerView.findViewById(R.id.counter);
+
+        GradientDrawable drawable =(GradientDrawable)counterView.getBackground();
+        drawable.setColor(getResources().getColor(R.color.yellow));
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                while (adsBean.getShow_time() > 0) {
+                    counterView.setVisibility(View.VISIBLE);
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+//                            mAdsLayerView.requestFocus();
+//                            adsView.requestFocus();
+
+                            counterView.setText("" + adsBean.getShow_time());
+                            adsBean.setShow_time(adsBean.getShow_time() - 1);
+                            mAdsCounter = adsBean.getShow_time();
+                        }
+                    });
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                hideAdsDialog(context, adsBean);
+
+            }
+        }).start();
     }
 
     /**
@@ -1047,7 +1173,7 @@ public class BootloaderService extends IntentService {
                     Api.postUserBehaviors(context, adsBean.getMsg_id() + "", user, localIp, "10", adsBean.getBusi_id());
                 } catch (Exception ex) {
                 }
-                if(adsBean.getSpecial_type() == AdsBean.ACTION_WEBVIEW){
+                if (adsBean.getSpecial_type() == AdsBean.ACTION_WEBVIEW) {
                     new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                         @Override
                         public void run() {
@@ -1055,8 +1181,8 @@ public class BootloaderService extends IntentService {
                             showWeb(adsBean);
                         }
                     }, 386);
-                }else {
-                                  AdsKeyEventHandler.onKeyOk(context, adsBean);
+                } else {
+                    AdsKeyEventHandler.onKeyOk(context, adsBean);
                 }
 
             }
@@ -1119,7 +1245,7 @@ public class BootloaderService extends IntentService {
                 gifView.setImageDrawable(gifFromResource);
             } else {
                 Bitmap bitmap = BitmapFactory.decodeFile(localPath);
-                Log.d(TAG, "showImage: show_picture   path:"+localPath);
+                Log.d(TAG, "showImage: show_picture   path:" + localPath);
                 gifView.setImageBitmap(bitmap);
             }
 
@@ -1216,19 +1342,19 @@ public class BootloaderService extends IntentService {
             webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         }
         String url = adsBean.getSpecial_url();
-        Log.d(TAG, "showWeb: weburl:"+url);
+        Log.d(TAG, "showWeb: weburl:" + url);
         String userToken = Utils.getTvUserToken(this);
         DeviceInfoBean deviceData = com.iptv.hn.entity.Utils.getDeviceData(this, new DeviceInfoBean());
         if (url.contains("?")) {
-            url = url + "&userId=" + Utils.getTvUserId(this) + "&userToken=" + userToken+
-                    "&mac="+deviceData.getMac_addr()+"&ip="+deviceData.getIp_addr()+
-                    "&payMod="+adsBean.getPay_mod();
+            url = url + "&userId=" + Utils.getTvUserId(this) + "&userToken=" + userToken +
+                    "&mac=" + deviceData.getMac_addr() + "&ip=" + deviceData.getIp_addr() +
+                    "&payMod=" + adsBean.getPay_mod();
         } else {
             url = url + "?userId=" + Utils.getTvUserId(this)
-                    + "&userToken=" + userToken+"&mac="+deviceData.getMac_addr()
-                    +"&ip="+deviceData.getIp_addr()+"&payMod="+adsBean.getPay_mod();
+                    + "&userToken=" + userToken + "&mac=" + deviceData.getMac_addr()
+                    + "&ip=" + deviceData.getIp_addr() + "&payMod=" + adsBean.getPay_mod();
         }
-        Log.d(TAG, "showWeb: weburl:"+url);
+        Log.d(TAG, "showWeb: weburl:" + url);
         webView.loadUrl(url);
         webView.requestFocus();
         webView.setWebViewClient(new WebViewClient() {
@@ -1272,9 +1398,9 @@ public class BootloaderService extends IntentService {
         webView.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View view, int i, KeyEvent keyEvent) {
-                Log.d(TAG, "onKey: myKeyEvent web : " + keyEvent.getKeyCode()+"  canBack: "+webView.canGoBack()+"  -- "+keyEvent);
+                Log.d(TAG, "onKey: myKeyEvent web : " + keyEvent.getKeyCode() + "  canBack: " + webView.canGoBack() + "  -- " + keyEvent);
 //                mAdsLayerView.setFocusable(false);
-                if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK&&keyEvent.getAction()==KeyEvent.ACTION_UP) {
+                if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK && keyEvent.getAction() == KeyEvent.ACTION_UP) {
                     if (webView.canGoBack()) {
                         webView.goBack();
                     } else {
@@ -1402,5 +1528,12 @@ public class BootloaderService extends IntentService {
     private boolean isPlay(Context context) {
         AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
         return audioManager.isMusicActive();
+    }
+
+    public class JiaoHu{
+        @JavascriptInterface
+        public void showAndroid(){
+            Toast.makeText(BootloaderService.this,"js调用了android的方法",Toast.LENGTH_SHORT).show();
+        }
     }
 }

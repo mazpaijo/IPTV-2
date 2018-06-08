@@ -13,4 +13,15 @@
         android:id="@+id/webview"
         android:focusable="false">
     </WebView>
+    <TextView
+        android:visibility="gone"
+        android:id="@+id/counter"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="left|top"
+        android:layout_margin="20dp"
+        android:background="@drawable/circle_background"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:textSize="14sp" />
 </com.iptv.hn.AdsView>
