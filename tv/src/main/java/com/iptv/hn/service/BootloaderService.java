@@ -63,7 +63,6 @@ import com.iptv.hn.utility.JsonUtil;
 import com.iptv.hn.utility.MACUtils;
 import com.iptv.hn.utility.PfUtil;
 import com.iptv.hn.utility.Rest;
-import com.iptv.hn.utility.TimeUtils;
 import com.iptv.hn.utility.Utils;
 import com.iptv.hn.utility.WidgetController;
 
@@ -75,7 +74,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 import pl.droidsonroids.gif.GifDrawable;
 import pl.droidsonroids.gif.GifImageView;
@@ -92,6 +90,7 @@ public class BootloaderService extends IntentService {
     protected View mAdsLayerView;
     protected int mAdsCounter;
     private static HashMap<Long, Long> mReceivedMessageIds = new HashMap<Long, Long>();
+    private AdsBean adsBean;
 
     public BootloaderService() {
         super("");
@@ -108,6 +107,8 @@ public class BootloaderService extends IntentService {
 
     @Override
     public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
+        Intent innerIntent = new Intent(this, AliveService.class);
+        startService(innerIntent);
         super.onStartCommand(intent, flags, startId);
         return START_STICKY;
     }
@@ -164,24 +165,27 @@ public class BootloaderService extends IntentService {
                     }
 
                     Contants.APP_INIT_TIME = begin_time * 1000;
-
-                    PfUtil pfUtil = PfUtil.getInstance();
-                    pfUtil.init(BootloaderService.this);
-                    pfUtil.putLong("app_init_time", Contants.APP_INIT_TIME);
+//
+//                    PfUtil pfUtil = PfUtil.getInstance();
+//                    pfUtil.init(BootloaderService.this);
+//                    pfUtil.putLong("app_init_time", Contants.APP_INIT_TIME);
                 }
 
                 if (rawJsonObj.has("list")) {
                     List<AdsBean> adsList = JsonUtil.jsonArrayStringToList(rawJsonObj.getJSONArray("list").toString(), AdsBean.class);
                     Log.d(TAG, "onSuccess: pull  --  " + adsList.size());
-                    for (AdsBean adsBean : adsList) {
-                        try {
-                            PushMsgStack.putMessage(BootloaderService.this, adsBean);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        //推送消息回执. 修改为冒泡时发送
-                        //sendMessageReceived(adsBean);
-                    }
+                   if(adsList.size()>0) {
+                       adsBean = adsList.get(0);
+                   }
+//                    for (AdsBean adsBean : adsList) {
+//                        try {
+//                            PushMsgStack.putMessage(BootloaderService.this, adsBean);
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                        }
+//                        //推送消息回执. 修改为冒泡时发送
+//                        //sendMessageReceived(adsBean);
+//                    }
                 }
                 showCommingMessage();
             }
@@ -261,31 +265,31 @@ public class BootloaderService extends IntentService {
     }
 
     protected void showCommingMessage() {
-        AdsBean bean = PushMsgStack.getTopMessage(this);
+        AdsBean bean = adsBean;
         Log.d(TAG, "showCommingMessage: showBean :  " + (bean != null));
         if (bean != null) {
             Log.i("showBean", "common msg: " + bean.toString() + "  Toast : " + Contants.DURATION_TOAST_MESSAGE);
             showAdsTemplate(bean);
         } else {
-            int duration = Contants.DURATION_TOAST_MESSAGE;
-            AdsBean targetBean = PushMsgStack.notifyAlarmMessage(this, duration);
-            Log.d(TAG, "showCommingMessage: showBean" + "  targetBean:  " + (targetBean != null) + "  messageCount: " + PushMsgStack.getMessageCount(this));
-            if (targetBean != null) {
-                Log.i("iptv", "targetBean msg" + targetBean.getMsg_id());
-                //应该
-                showAdsTemplate(targetBean);
-            } else if (PushMsgStack.getMessageCount(this) > 1) {
-                Log.i("iptv", "wait msg..");
-                Log.i("iptv", "Contants.DURATION_TOAST_MESSAGE = " + Contants.DURATION_TOAST_MESSAGE);
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        showCommingMessage();
-
-                    }
-                }, Contants.DURATION_TOAST_MESSAGE);
-            }
+//            int duration = Contants.DURATION_TOAST_MESSAGE;
+//            AdsBean targetBean = PushMsgStack.notifyAlarmMessage(this, duration);
+            Log.d(TAG, "showCommingMessage: showBean    - null ");
+//            if (targetBean != null) {
+//                Log.i("iptv", "targetBean msg" + targetBean.getMsg_id());
+//                //应该
+//                showAdsTemplate(targetBean);
+//            } else if (PushMsgStack.getMessageCount(this) > 1) {
+//                Log.i("iptv", "wait msg..");
+//                Log.i("iptv", "Contants.DURATION_TOAST_MESSAGE = " + Contants.DURATION_TOAST_MESSAGE);
+//                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+//                    @Override
+//                    public void run() {
+//
+//                        showCommingMessage();
+//
+//                    }
+//                }, Contants.DURATION_TOAST_MESSAGE);
+//            }
         }
     }
 
@@ -318,7 +322,7 @@ public class BootloaderService extends IntentService {
 
                         if (Contants.isInMangoLiving && adsBean.getLive_swift() == 0) {
                             // 在芒果tv直播中，不弹窗
-                            PushMsgStack.removeMessage(BootloaderService.this, adsBean);
+//                            PushMsgStack.removeMessage(BootloaderService.this, adsBean);
                             return;
                         }
 
@@ -328,7 +332,7 @@ public class BootloaderService extends IntentService {
 
 //                        Log.d(TAG, "run:    "+mAdsLayerView+adsBean.toString());
                         //播放完后从缓存中删除
-                        PushMsgStack.removeMessage(BootloaderService.this, adsBean);
+//                        PushMsgStack.removeMessage(BootloaderService.this, adsBean);
                         showAdsDialog(adsBean, pathOnSdcard);
 
                     }
@@ -339,36 +343,37 @@ public class BootloaderService extends IntentService {
 
                 //下轮播放时间间隔
 
-                final AdsBean nextAlarmMessage = PushMsgStack.notifyAlarmMessage(BootloaderService.this, Contants.DURATION_TOAST_MESSAGE);
+//                final AdsBean nextAlarmMessage = PushMsgStack.notifyAlarmMessage(BootloaderService.this, Contants.DURATION_TOAST_MESSAGE);
 
-                if (nextAlarmMessage != null) {
-                    long execTime = nextAlarmMessage.getExce_starttime();
-                    long now = TimeUtils.getNowSeconds();
-                    long gap = execTime - now;
-                    Log.d("findbug", "onFinish: next :" + nextAlarmMessage + " gap:" + gap + " extime: " + execTime + "  now : " + now + "  TOAST:  " + Contants.DURATION_TOAST_MESSAGE);
-                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-
-//							Utils.showToast(getBaseContext(), "next start = " + nextAlarmMessage.getMsg_id());
-                            //定时启动消息
-                            showAdsTemplate(nextAlarmMessage);
-
-                        }
-                    }, gap);
-                }
+//                if (nextAlarmMessage != null) {
+//                    long execTime = nextAlarmMessage.getExce_starttime();
+//                    long now = TimeUtils.getNowSeconds();
+//                    long gap = execTime - now;
+//                    Log.d("findbug", "onFinish: next :" + nextAlarmMessage + " gap:" + gap + " extime: " + execTime + "  now : " + now + "  TOAST:  " + Contants.DURATION_TOAST_MESSAGE);
+//                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+//                        @Override
+//                        public void run() {
+//
+////							Utils.showToast(getBaseContext(), "next start = " + nextAlarmMessage.getMsg_id());
+//                            //定时启动消息
+//                            showAdsTemplate(nextAlarmMessage);
+//
+//                        }
+//                    }, gap);
+//                }
 
                 //唤起下一轮播放
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        AdsBean bean = PushMsgStack.getTopMessage(BootloaderService.this);
-                        Log.d(TAG, "run: showAdsTemplate  轮询调用 ： " + (bean != null) + "   轮询间隔：  " + Contants.DURATION_TOAST_MESSAGE);
-                        if (bean != null) {
-                            showAdsTemplate(bean);
-                        }
-                    }
-                }, Contants.DURATION_TOAST_MESSAGE);
+//                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+//                    @Override
+//                    public void run() {
+////                        AdsBean bean = PushMsgStack.getTopMessage(BootloaderService.this);
+//                        AdsBean bean = adsBean;
+//                        Log.d(TAG, "run: showAdsTemplate  轮询调用 ： " + (bean != null) + "   轮询间隔：  " + Contants.DURATION_TOAST_MESSAGE);
+//                        if (bean != null) {
+//                            showAdsTemplate(bean);
+//                        }
+//                    }
+//                }, Contants.DURATION_TOAST_MESSAGE);
             }
 
             @Override
@@ -956,16 +961,17 @@ public class BootloaderService extends IntentService {
 //        webView.setFocusable(true);
         String url = adsBean.getSpecial_url();
         final String userToken = Utils.getTvUserToken(context);
+        final String tvUserId = Utils.getTvUserId(context);
         final DeviceInfoBean deviceData = com.iptv.hn.entity.Utils.getDeviceData(context, new DeviceInfoBean());
         if (url.contains("?")) {
-            url = url + "&userId=" + Utils.getTvUserId(context) + "&userToken=" + userToken + "&mac=" + deviceData.getMac_addr() + "&ip=" + deviceData.getIp_addr();
+            url = url + "&userId=" + tvUserId + "&userToken=" + userToken + "&mac=" + deviceData.getMac_addr() + "&ip=" + deviceData.getIp_addr();
         } else {
             url = url + "?userId=" + Utils.getTvUserId(context) + "&userToken=" + userToken + "&mac=" + deviceData.getMac_addr() + "&ip=" + deviceData.getIp_addr();
         }
 //        webView.loadUrl(url);
         // 步骤1：加载JS代码
         // 格式规定为:file:///android_asset/文件名.html
-        webView.loadUrl("file:///android_asset/test.html");
+//        webView.loadUrl("file:///android_asset/test.html");
 
         webView.requestFocus();
         webView.getSettings().setBuiltInZoomControls(true);
@@ -977,32 +983,44 @@ public class BootloaderService extends IntentService {
                                           // 步骤2：根据协议的参数，判断是否是所需要的url
                                           // 一般根据scheme（协议格式） & authority（协议名）判断（前两个参数）
                                           //假定传入进来的 url = "js://webview?arg1=111&arg2=222"（同时也是约定好的需要拦截的）
-                                          Log.d(TAG, "shouldOverrideUrlLoading: -- : "+ url);
+//                                          Log.d(TAG, "shouldOverrideUrlLoading: -- : "+ url);
                                           Uri uri = Uri.parse(url);
                                           // 如果url的协议 = 预先约定的 js 协议
+
                                           // 就解析往下解析参数
                                           if ( uri.getScheme().equals("js")) {
 
                                               // 如果 authority  = 预先约定协议里的 webview，即代表都符合约定的协议
                                               // 所以拦截url,下面JS开始调用Android需要的方法
-                                              if (uri.getAuthority().equals("web")) {
-
-                                                  //  步骤3：
-                                                  // 执行JS所需要调用的逻辑
-                                                  Log.d(TAG, "shouldOverrideUrlLoading: "+"   --  js调用了Android的方法: url: "+url+"  uri : "+uri);
-                                                  // 可以在协议上带有参数并传递到Android上
-                                                  HashMap<String, String> params = new HashMap<>();
-                                                  Set<String> collection = uri.getQueryParameterNames();
-                                                  WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-                                                  windowManager.removeViewImmediate(mAdsLayerView);
-                                                  mAdsLayerView.setVisibility(View.GONE);
-                                                  mAdsLayerView = null;
-
-                                              }
+//                                              if (uri.getAuthority().equals("web")) {
+//
+//                                                  //  步骤3：
+//                                                  // 执行JS所需要调用的逻辑
+//                                                  Log.d(TAG, "shouldOverrideUrlLoading: "+"   --  js调用了Android的方法: url: "+url+"  uri : "+uri);
+//                                                  // 可以在协议上带有参数并传递到Android上
+//                                                  HashMap<String, String> params = new HashMap<>();
+//                                                  Set<String> collection = uri.getQueryParameterNames();
+//                                                  WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+//                                                  windowManager.removeViewImmediate(mAdsLayerView);
+//                                                  mAdsLayerView.setVisibility(View.GONE);
+//                                                  mAdsLayerView = null;
+//
+//                                              }
 
                                               return true;
                                           }else if(uri.getScheme().equals("action")){
-                                              Log.d(TAG, "shouldOverrideUrlLoading: aaaaa");
+                                              Log.d(TAG, "shouldOverrideUrlLoading: action "+url);
+                                              Log.d(TAG, "shouldOverrideUrlLoading: userId: "+tvUserId+" userToken:  "+userToken);
+//                                              Intent intent = new Intent();
+//                                              intent.setClassName("cn.com.bellmann.payment","cn.com.bellmann.payment.PayActivity");
+//                                              intent.putExtra("sourceId","1008");
+//                                              int busi_id = adsBean.getBusi_id();
+//                                              intent.putExtra("busiId", busi_id);
+//
+//                                              startActivity(intent);
+
+
+
 
                                               Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
                                               mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -1015,9 +1033,9 @@ public class BootloaderService extends IntentService {
                                                   //该应用的包名和主Activity
                                                   String pkg = res.activityInfo.packageName;
                                                   String cls = res.activityInfo.name;
-
+                                                  Log.d(TAG, "shouldOverrideUrlLoading: pkg: "+pkg+"   cls: "+cls);
                                                   if(pkg.contains(adsBean.getSpecial_url())){
-                                                      ComponentName componet = new ComponentName(pkg, cls);
+                                                      ComponentName componet = new ComponentName("cn.com.bellmann.payment", "cn.com.bellmann.payment.MainActivity");
                                                       Intent intent = new Intent();
                                                       intent.setComponent(componet);
                                                       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -1025,10 +1043,11 @@ public class BootloaderService extends IntentService {
                                                       context.startActivity(intent);
                                                   }
                                               }
-                                              WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-                                              windowManager.removeViewImmediate(mAdsLayerView);
-                                              mAdsLayerView.setVisibility(View.GONE);
-                                              mAdsLayerView = null;
+//                                              WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+//                                              windowManager.removeViewImmediate(mAdsLayerView);
+//                                              mAdsLayerView.setVisibility(View.GONE);
+//                                              mAdsLayerView = null;
+
                                               return true;
                                           }
                                           return super.shouldOverrideUrlLoading(view, url);
@@ -1097,7 +1116,7 @@ public class BootloaderService extends IntentService {
         final TextView counterView = (TextView) mAdsLayerView.findViewById(R.id.counter);
 
         GradientDrawable drawable =(GradientDrawable)counterView.getBackground();
-        drawable.setColor(getResources().getColor(R.color.yellow));
+//        drawable.setColor(getResources().getColor(R.color.green));
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -1336,7 +1355,7 @@ public class BootloaderService extends IntentService {
         settings.setBuiltInZoomControls(false);//关闭zoom
         settings.setUseWideViewPort(true);//设置webview自适应屏幕大小
         settings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NARROW_COLUMNS);//设置，可能的话使所有列的宽度不超过屏幕宽度
-        settings.setLoadWithOverviewMode(true);//设置webview自适应屏幕大小
+//        settings.setLoadWithOverviewMode(true);//设置webview自适应屏幕大小 这条命令 web  不能全屏－－
         settings.setDomStorageEnabled(true);//设置可以使用localStorage
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
