@@ -5,6 +5,7 @@ import android.app.IntentService;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
@@ -13,7 +14,6 @@ import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -55,6 +55,7 @@ import com.iptv.hn.entity.time_text;
 import com.iptv.hn.media.IjkVideoView;
 import com.iptv.hn.utility.AdsKeyEventHandler;
 import com.iptv.hn.utility.Api;
+import com.iptv.hn.utility.CRequest;
 import com.iptv.hn.utility.Callback;
 import com.iptv.hn.utility.DownloadManager;
 import com.iptv.hn.utility.HttpCallback;
@@ -74,10 +75,14 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import pl.droidsonroids.gif.GifDrawable;
 import pl.droidsonroids.gif.GifImageView;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
+
+import static com.iptv.hn.utility.Utils.sendUserBehavior;
 
 /**
  * Created by ligao on 2017/12/23 0023.
@@ -91,6 +96,10 @@ public class BootloaderService extends IntentService {
     protected int mAdsCounter;
     private static HashMap<Long, Long> mReceivedMessageIds = new HashMap<Long, Long>();
     private AdsBean adsBean;
+
+    //下面两个参数用来控制web返回键的监听
+    private int webPage = 0;
+    private String bigWebUrl;
 
     public BootloaderService() {
         super("");
@@ -169,14 +178,22 @@ public class BootloaderService extends IntentService {
 //                    PfUtil pfUtil = PfUtil.getInstance();
 //                    pfUtil.init(BootloaderService.this);
 //                    pfUtil.putLong("app_init_time", Contants.APP_INIT_TIME);
+
+
+                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            pullMessages();
+                        }
+                    }, Contants.DURATION_PING);
                 }
 
                 if (rawJsonObj.has("list")) {
                     List<AdsBean> adsList = JsonUtil.jsonArrayStringToList(rawJsonObj.getJSONArray("list").toString(), AdsBean.class);
                     Log.d(TAG, "onSuccess: pull  --  " + adsList.size());
-                   if(adsList.size()>0) {
-                       adsBean = adsList.get(0);
-                   }
+                    if (adsList.size() > 0) {
+                        adsBean = adsList.get(0);
+                    }
 //                    for (AdsBean adsBean : adsList) {
 //                        try {
 //                            PushMsgStack.putMessage(BootloaderService.this, adsBean);
@@ -199,17 +216,13 @@ public class BootloaderService extends IntentService {
             public void onError() {
                 Log.i("httpCall", "onError 网络请求错误 ");
                 //以下为没网情况下测试， 记得注释掉
-                AdsBean adsBean = new AdsBean();
-                adsBean.setPosition(4);
-                adsBean.setPriority_level(1);
-//                adsBean.setExce_endtime((Long)82800);
-                adsBean.setIs_back(0);
-                adsBean.setSpecial_url("http:\\/\\/124.232.135.239:8088\\/scene_push_topics\\/mp\\/mp_stoptips.jsp");
-                adsBean.setExce_starttime((long) 0);
-                adsBean.setFile_url("http:\\/\\/124.232.135.239:8088\\/scene_push_topics\\/mp\\/img\\/small1.png");
-                adsBean.setFile_type(1);
-                adsBean.setBusi_id(100);
-                adsBean.setShow_time(300);
+
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        pullMessages();
+                    }
+                }, Contants.DURATION_PING);
 
             }
         };
@@ -219,20 +232,21 @@ public class BootloaderService extends IntentService {
             restApi.get(callback);
         }
 
-        Log.d(TAG, "pullMessages: " + Contants.DURATION_PING);
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                pullMessages();
-            }
-        }, Contants.DURATION_PING);
-
+//        Log.d(TAG, "pullMessages: " + Contants.DURATION_PING);
+//        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                pullMessages();
+//            }
+//        }, Contants.DURATION_PING);
 
     }
 
     protected void sendMessageReceived(AdsBean adsBean) {
         String url = Contants.Rest_api_v2 + "mp_push/behavior?";
         Rest restApi = new Rest(url);
+        Log.d(TAG, "sendMessageReceived: 发送数据－－－ :" + url);
+
         restApi.addParam("account", Utils.getTvUserId(this));
         restApi.addParam("timestamp", System.currentTimeMillis() / 1000); //
 
@@ -391,6 +405,7 @@ public class BootloaderService extends IntentService {
     }
 
     private AudioManager mAm;
+
 
     protected void showAdsDialog(final AdsBean adsBean, String localPath) {
         try {
@@ -942,23 +957,35 @@ public class BootloaderService extends IntentService {
      */
     public void showWebView(LayoutInflater inflater, final Context context, WindowManager wm,
                             final WindowManager.LayoutParams params, final AdsBean adsBean, String localPath) {
+
         //打开一个小窗口web页面
         mAdsLayerView = inflater.inflate(R.layout.layout_ads_webview, null);
         mAdsLayerView.setBackgroundColor(context.getResources().getColor(R.color.transparent));
         mAdsLayerView.setFocusable(true);
 
+
+        final time_color time_color = JsonUtil.jsonStringToObject(adsBean.getTime_color(), time_color.class);
+        final time_text time_text = JsonUtil.jsonStringToObject(adsBean.getTime_text(), time_text.class);
+        Log.d(TAG, "showColor: " + time_color.toString() + "  time_text: " + time_text);
 //        mAdsLayerView.requestFocus();
-//        mAdsLayerView.getLocationOnScreen();
         wm.addView(mAdsLayerView, params);
 
         final AdsView adsView = (AdsView) mAdsLayerView.findViewById(R.id.adsView);
 //        adsView.requestFocus();
         final WebView webView = (WebView) adsView.findViewById(R.id.webview);
-        webView.getSettings().setAllowContentAccess(true);
-        webView.getSettings().setJavaScriptEnabled(true);
+        WebSettings settings = webView.getSettings();
+//        webView.getSettings().setAllowContentAccess(true);
+//        webView.getSettings().setJavaScriptEnabled(true);
+        settings.setJavaScriptEnabled(true);
+//        settings.setJavaScriptCanOpenWindowsAutomatically(true);
+        settings.setSupportZoom(true);
+//        settings.setLoadWithOverviewMode(true);
+        settings.setUseWideViewPort(true);
+
+
+        webView.setBackgroundColor(0);   //    －－ 设置透明
         webView.addJavascriptInterface(new JavaScriptObjectContext(context, webView, mAdsLayerView, adsBean), "AppFunction");
-//        webView.requestFocus();
-//        webView.setFocusable(true);
+
         String url = adsBean.getSpecial_url();
         final String userToken = Utils.getTvUserToken(context);
         final String tvUserId = Utils.getTvUserId(context);
@@ -968,108 +995,235 @@ public class BootloaderService extends IntentService {
         } else {
             url = url + "?userId=" + Utils.getTvUserId(context) + "&userToken=" + userToken + "&mac=" + deviceData.getMac_addr() + "&ip=" + deviceData.getIp_addr();
         }
-//        webView.loadUrl(url);
+        Log.d(TAG, "showWebViewUrl: " + url);
+        webView.loadUrl(url);
+
         // 步骤1：加载JS代码
         // 格式规定为:file:///android_asset/文件名.html
 //        webView.loadUrl("file:///android_asset/test.html");
+        final long currentTime = System.currentTimeMillis() / 1000;
 
         webView.requestFocus();
-        webView.getSettings().setBuiltInZoomControls(true);
+//        webView.getSettings().setBuiltInZoomControls(true);
+//        webView.getSettings().setUseWideViewPort(true);
+
         // 复写WebViewClient类的shouldOverrideUrlLoading方法
         webView.setWebViewClient(new WebViewClient() {
-                                      @Override
-                                      public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                                     @Override
+                                     public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                                         Log.d(TAG, "shouldOverrideUrlLoading: " + url);
 
-                                          // 步骤2：根据协议的参数，判断是否是所需要的url
-                                          // 一般根据scheme（协议格式） & authority（协议名）判断（前两个参数）
-                                          //假定传入进来的 url = "js://webview?arg1=111&arg2=222"（同时也是约定好的需要拦截的）
+                                         // 步骤2：根据协议的参数，判断是否是所需要的url
+                                         // 一般根据scheme（协议格式） & authority（协议名）判断（前两个参数）
+                                         //假定传入进来的 url = "js://webview?arg1=111&arg2=222"（同时也是约定好的需要拦截的）
 //                                          Log.d(TAG, "shouldOverrideUrlLoading: -- : "+ url);
-                                          Uri uri = Uri.parse(url);
-                                          // 如果url的协议 = 预先约定的 js 协议
+                                         Uri uri = Uri.parse(url);
+                                         // 如果url的协议 = 预先约定的 js 协议
 
-                                          // 就解析往下解析参数
-                                          if ( uri.getScheme().equals("js")) {
+                                         // 就解析往下解析参数
+                                         if (uri.getScheme().equals("action")) {
 
-                                              // 如果 authority  = 预先约定协议里的 webview，即代表都符合约定的协议
-                                              // 所以拦截url,下面JS开始调用Android需要的方法
-//                                              if (uri.getAuthority().equals("web")) {
-//
-//                                                  //  步骤3：
-//                                                  // 执行JS所需要调用的逻辑
-//                                                  Log.d(TAG, "shouldOverrideUrlLoading: "+"   --  js调用了Android的方法: url: "+url+"  uri : "+uri);
-//                                                  // 可以在协议上带有参数并传递到Android上
-//                                                  HashMap<String, String> params = new HashMap<>();
-//                                                  Set<String> collection = uri.getQueryParameterNames();
-//                                                  WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-//                                                  windowManager.removeViewImmediate(mAdsLayerView);
-//                                                  mAdsLayerView.setVisibility(View.GONE);
-//                                                  mAdsLayerView = null;
-//
-//                                              }
+                                             if (mAdsLayerView == null) {
+                                                 return true;
+                                             }
+                                             // 如果 authority  = 预先约定协议里的 webview，即代表都符合约定的协议
+                                             // 所以拦截url,下面JS开始调用Android需要的方法
+                                             if (uri.getAuthority().equals("closeWeb")) {
+                                                 sendUserBehavior(adsBean.getBusi_id() + "", 0, currentTime);
 
-                                              return true;
-                                          }else if(uri.getScheme().equals("action")){
-                                              Log.d(TAG, "shouldOverrideUrlLoading: action "+url);
-                                              Log.d(TAG, "shouldOverrideUrlLoading: userId: "+tvUserId+" userToken:  "+userToken);
-//                                              Intent intent = new Intent();
-//                                              intent.setClassName("cn.com.bellmann.payment","cn.com.bellmann.payment.PayActivity");
-//                                              intent.putExtra("sourceId","1008");
-//                                              int busi_id = adsBean.getBusi_id();
-//                                              intent.putExtra("busiId", busi_id);
-//
-//                                              startActivity(intent);
+                                                 webPage = 0;
+                                                 //  步骤3：
+                                                 // 执行JS所需要调用的逻辑
+                                                 Log.d(TAG, "shouldOverrideUrlLoading: " + "   --  js调用了Android的方法: url: " + url + "  uri : " + uri);
+                                                 // 可以在协议上带有参数并传递到Android上
+                                                 HashMap<String, String> params = new HashMap<>();
+                                                 Set<String> collection = uri.getQueryParameterNames();
 
+                                             } else if (uri.getAuthority().equals("openApp")) {
 
+                                                 sendUserBehavior(adsBean.getBusi_id() + "", 0, currentTime);
+                                                 //url参数键值对
+                                                 Map<String, String> mapRequest = CRequest.URLRequest(url);
 
+                                                 String query = uri.getQuery();
+                                                 String jsonData = mapRequest.get("jsonData");
+                                                 String isPay = mapRequest.get("isPay");
+                                                 String toClass = mapRequest.get("toClass");
+                                                 String toPackage = mapRequest.get("toPackage");
+                                                 Log.d(TAG, "shouldOverrideUrlLoading: query :" + query);
+                                                 PackageInfo packageInfo = null;
+                                                 if (toPackage != null) {
+                                                     try {
+                                                         packageInfo = context.getPackageManager().getPackageInfo(toPackage, 0);
+                                                     } catch (PackageManager.NameNotFoundException e) {
+                                                         e.printStackTrace();
+                                                     }
+                                                 }
+                                                 Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+                                                 mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                                                 PackageManager mPackageManager = context.getPackageManager();
+                                                 List<ResolveInfo> mAllApps = mPackageManager.queryIntentActivities(mainIntent, 0);
+                                                 //按包名排序
+                                                 Collections.sort(mAllApps, new ResolveInfo.DisplayNameComparator(mPackageManager));
+                                                 // 包含  isPay
+                                                 if (isPay != null) {
 
-                                              Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
-                                              mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-                                              PackageManager mPackageManager = context.getPackageManager();
-                                              List<ResolveInfo> mAllApps = mPackageManager.queryIntentActivities(mainIntent, 0);
-                                              //按包名排序
-                                              Collections.sort(mAllApps, new ResolveInfo.DisplayNameComparator(mPackageManager));
+                                                     //   isPay  标志为1时
+                                                     if (isPay.equals("1")) {
+                                                         if (query.contains("jsonData")) {
+                                                             for (ResolveInfo res : mAllApps) {
+                                                                 //该应用的包名和主Activity
+                                                                 String pkg = res.activityInfo.packageName;
+                                                                 String cls = res.activityInfo.name;
+                                                                    //packageInfo   不为空说明已经安装了该apk
+                                                                 if (packageInfo != null && toClass != null) {
 
-                                              for(ResolveInfo res : mAllApps){
-                                                  //该应用的包名和主Activity
-                                                  String pkg = res.activityInfo.packageName;
-                                                  String cls = res.activityInfo.name;
-                                                  Log.d(TAG, "shouldOverrideUrlLoading: pkg: "+pkg+"   cls: "+cls);
-                                                  if(pkg.contains(adsBean.getSpecial_url())){
-                                                      ComponentName componet = new ComponentName("cn.com.bellmann.payment", "cn.com.bellmann.payment.MainActivity");
-                                                      Intent intent = new Intent();
-                                                      intent.setComponent(componet);
-                                                      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                      intent.putExtra("jsonData", adsBean.getJsonData());
-                                                      context.startActivity(intent);
-                                                  }
-                                              }
-//                                              WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-//                                              windowManager.removeViewImmediate(mAdsLayerView);
-//                                              mAdsLayerView.setVisibility(View.GONE);
-//                                              mAdsLayerView = null;
+                                                                     ComponentName componet = new ComponentName(toPackage, toClass);
+                                                                     Intent intentPay = new Intent();
+                                                                     intentPay.setComponent(componet);
+//                                                                     String str = "isPay=1&jsonData=";
+//                                                                     String replace = query.replace(str, "");
+//                                                                     Log.d(TAG, "My_jsonData: "+replace);
+                                                                     Log.d(TAG, "My_jsonData:  --  " + jsonData);
+//                                                                     Log.d(TAG, "My_jsonData: "+userToken);
+                                                                     intentPay.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                                     intentPay.putExtra("jsonData", jsonData);
+                                                                     context.startActivity(intentPay);
+                                                                 }
+                                                                 /*
+                                                                 else if (pkg.contains("cn.com.bellmann.payment")) {
+                                                                     ComponentName componet = new ComponentName(pkg, "cn.com.bellmann.payment.PayActivity");
+                                                                     Intent intentPay = new Intent();
+                                                                     intentPay.setComponent(componet);
+//                                                                     String str = "isPay=1&jsonData=";
+//                                                                     String replace = query.replace(str, "");
+//                                                                     Log.d(TAG, "My_jsonData: "+replace);
+                                                                     Log.d(TAG, "My_jsonData:  --  " + jsonData);
+//                                                                     Log.d(TAG, "My_jsonData: "+userToken);
+                                                                     intentPay.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                                     intentPay.putExtra("jsonData", jsonData);
+                                                                     context.startActivity(intentPay);
+                                                                 } */
 
-                                              return true;
-                                          }
-                                          return super.shouldOverrideUrlLoading(view, url);
-                                      }
-                                  }
+                                                             }
+                                                         } else {
+                                                             //没有jsonData时用这种方法启动
+                                                             for (ResolveInfo res : mAllApps) {
+                                                                 //该应用的包名和主Activity
+                                                                 String pkg = res.activityInfo.packageName;
+                                                                 String cls = res.activityInfo.name;
+                                                                 if (pkg.contains("cn.com.bellmann.payment")) {
+                                                                     ComponentName componet = new ComponentName(pkg, "cn.com.bellmann.payment.PayActivity");
+                                                                     Intent intentPay = new Intent();
+                                                                     intentPay.setComponent(componet);
+
+                                                                     intentPay.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                                                                      intent一个一个添加参数
+                                                                     Intent intent = testIntent(intentPay);
+                                                                     context.startActivity(intent);
+
+                                                                 }
+
+                                                             }
+
+                                                         }
+
+                                                     } else {
+                                                         String str = "isPay=0&jsonData=";
+                                                         String replace = query.replace(str, "");
+
+                                                         String packageName = adsBean.getSpecial_url();
+                                                         for (ResolveInfo res : mAllApps) {
+                                                             //该应用的包名和主Activity
+                                                             String pkg = res.activityInfo.packageName;
+                                                             String cls = res.activityInfo.name;
+
+                                                             if (pkg.contains(packageName)) {
+                                                                 ComponentName componet = new ComponentName(pkg, cls);
+                                                                 Intent intent = new Intent();
+                                                                 intent.setComponent(componet);
+                                                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                                 intent.putExtra("jsonData", replace);
+                                                                 context.startActivity(intent);
+                                                             }
+                                                         }
+                                                     }
+                                                 } else {
+                                                     //  没有 isPay 只有  jsonData
+                                                     String packageName = toPackage;
+                                                     Log.d(TAG, "shouldOverrideUrlLoading: 其他跳转方法::"+toPackage);
+                                                     //  未接收到包名时 返回
+                                                    if(packageName==null){
+                                                        hideAdsDialog(context, adsBean);
+                                                        return  true;
+                                                    }
+                                                     for (ResolveInfo res : mAllApps) {
+                                                         //该应用的包名和主Activity
+                                                         String pkg = res.activityInfo.packageName;
+                                                         String cls = res.activityInfo.name;
+
+                                                         if (pkg.contains(packageName)) {
+                                                             ComponentName componet = new ComponentName(pkg, cls);
+                                                             Intent intent = new Intent();
+                                                             intent.setComponent(componet);
+                                                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                             intent.putExtra("jsonData", jsonData);
+                                                             context.startActivity(intent);
+                                                         }
+                                                     }
+                                                 }
+
+                                             }
+
+                                             hideAdsDialog(context, adsBean);
+
+                                             sendUserBehavior(adsBean.getBusi_id() + "", 0, currentTime);
+
+                                             return true;
+                                         }
+
+                                         webPage += 1;
+                                         String s = CRequest.UrlPage(url);
+
+                                         if (webPage == 1) {
+                                             bigWebUrl = s;
+                                             Log.d(TAG, "onKeyWebPage: load :" + webPage + "   " + s);
+                                         }
+
+                                         return super.shouldOverrideUrlLoading(view, url);
+                                     }
+                                 }
         );
-
 
 
         webView.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View view, int i, KeyEvent keyEvent) {
-                Log.d(TAG, "onKey: myKeyEvent web : " + keyEvent.getKeyCode() + "  canBack: " + webView.canGoBack() + "  -- " + keyEvent);
 //                mAdsLayerView.setFocusable(false);
                 if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK && keyEvent.getAction() == KeyEvent.ACTION_UP) {
-                    if (webView.canGoBack()) {
+//                    String back = CRequest.UrlPage(urlBack);
+                    if(webPage==0&&adsBean.getIs_back()==1){
+                        return false;
+                    }
+                    String url1 = webView.getUrl();
+                    String s = CRequest.UrlPage(url1);
+                    Log.d(TAG, "onKeyWebPage: " + webPage + "   " + s + "  " + bigWebUrl);
+                    if (s != null && s.equals(bigWebUrl) || webPage == 1) {
+                        WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+                        windowManager.removeViewImmediate(mAdsLayerView);
+                        mAdsLayerView.setVisibility(View.GONE);
+                        mAdsLayerView = null;
+                        webPage = 0;
+                    } else if (webView.canGoBack() && webPage > 1) {
+
                         webView.goBack();
+                        webPage -= 1;
                     } else {
                         WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
                         windowManager.removeViewImmediate(mAdsLayerView);
                         mAdsLayerView.setVisibility(View.GONE);
                         mAdsLayerView = null;
+                        webPage = 0;
                     }
                 }
                 return false;
@@ -1077,7 +1231,7 @@ public class BootloaderService extends IntentService {
         });
 
         //-----------------------
-
+        Log.d(TAG, "showWebViewWidth: " + webView.getWidth());
 
         adsView.setKeyBoardCallback(new Callback() {
             @Override
@@ -1093,6 +1247,7 @@ public class BootloaderService extends IntentService {
             @Override
             public void onFinish(Object... o) {
 //                if (adsBean.getIs_back()==0) {
+
 //                    AdsKeyEventHandler.onKeyOk(context, adsBean);
 //                    hideAdsDialog(context, adsBean);
 //                    //行为日志上报
@@ -1113,23 +1268,25 @@ public class BootloaderService extends IntentService {
             }
         });
 
-        final TextView counterView = (TextView) mAdsLayerView.findViewById(R.id.counter);
-
-        GradientDrawable drawable =(GradientDrawable)counterView.getBackground();
+//        final TextView counterView = (TextView) mAdsLayerView.findViewById(R.id.counter);
+//counterView.setBackgroundColor(getResources().getColor(R.color.green));
+//        GradientDrawable drawable =(GradientDrawable)counterView.getBackground();
 //        drawable.setColor(getResources().getColor(R.color.green));
+//        counterView.setTextColor(Color.rgb(time_color.R,time_color.G,time_color.B));
+/*
         new Thread(new Runnable() {
             @Override
             public void run() {
 
                 while (adsBean.getShow_time() > 0) {
-                    counterView.setVisibility(View.VISIBLE);
+//                    counterView.setVisibility(View.VISIBLE);
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
 //                            mAdsLayerView.requestFocus();
 //                            adsView.requestFocus();
+//                            counterView.setText("" + adsBean.getShow_time());
 
-                            counterView.setText("" + adsBean.getShow_time());
                             adsBean.setShow_time(adsBean.getShow_time() - 1);
                             mAdsCounter = adsBean.getShow_time();
                         }
@@ -1141,10 +1298,67 @@ public class BootloaderService extends IntentService {
                     }
                 }
 
-                hideAdsDialog(context, adsBean);
+                if(mAdsLayerView==null){
 
+                }else {
+                    hideAdsDialog(context, adsBean);
+                }
             }
-        }).start();
+        }).start();*/
+
+    }
+
+    /**
+     * {
+     * "SPID": "spa00071",
+     * "backClass": "com.shareinfo.cphn.OrderActivity",
+     * "backPackage": "com.shareinfo.cphn",
+     * "busiId": "117",
+     * "key": "8:2",
+     * "notifyUrl": "http://10.255.25.152:8081/IPTVService/iptv/hunan/dinggouNotify.jsp?uid=1334861564813",
+     * "optFlag": "VAS",
+     * "price": "240000",
+     * "productID": "productIDa3000000000000000000623",
+     * "productName": "",
+     * "sign": "a41da626079b1cd368d1d7b5813c0e3c",
+     * "sourceId": "1008",
+     * "sourceUrl": "http://www.baidu.com",
+     * "transactionID": "spa0007120180613112940617321959070607117",
+     * "userIDType": 0,
+     * "userId": "136643152:433",
+     * "userToken": "/4.4/31342.;26746:167507.:/62304"
+     * }
+     */
+
+    private Intent testIntent(Intent intent) {
+
+        intent.putExtra("transactionID", "");
+        intent.putExtra("SPID", "");
+
+        intent.putExtra("userId", "136643152:433");
+        intent.putExtra("userToken", "/4.4/31342.;26746:167507.:/62304");
+        intent.putExtra("key", "8:2");
+        intent.putExtra("productID", "productIDa3000000000000000000623");
+        intent.putExtra("price", "240000");
+        intent.putExtra("productName", "");
+        intent.putExtra("backPackage", "com.shareinfo.cphn");
+        intent.putExtra("backClass", "");
+        intent.putExtra("backPara", "");
+        intent.putExtra("notifyUrl", "http://10.255.25.152:8081/IPTVService/iptv/hunan/dinggouNotify.jsp?uid=1334861564813");
+        intent.putExtra("optFlag", "VAS");
+        intent.putExtra("purchaseType", "");
+        intent.putExtra("categoryID", "");
+        intent.putExtra("contentID", "");
+        intent.putExtra("contentType", "");
+        intent.putExtra("sourceId", "1008");
+        intent.putExtra("sourceUrl", "http://www.baidu.com");
+        intent.putExtra("busiId", "117");
+        intent.putExtra("sign", "a41da626079b1cd368d1d7b5813c0e3c");
+        return intent;
+    }
+
+    private void testJsonData(String data) {
+
     }
 
     /**
@@ -1549,10 +1763,10 @@ public class BootloaderService extends IntentService {
         return audioManager.isMusicActive();
     }
 
-    public class JiaoHu{
+    public class JiaoHu {
         @JavascriptInterface
-        public void showAndroid(){
-            Toast.makeText(BootloaderService.this,"js调用了android的方法",Toast.LENGTH_SHORT).show();
+        public void showAndroid() {
+            Toast.makeText(BootloaderService.this, "js调用了android的方法", Toast.LENGTH_SHORT).show();
         }
     }
 }

@@ -13,7 +13,8 @@ public class Contants {
 //   public static final String Rest_api_v2 = "http://124.232.135.246:9090/";
    //测试地址
     public static final String Rest_api_v2 =  "http://124.232.135.241:8002/";
-    public static final String Rest_api_v3 =  "http://124.232.135.241:8002/";
+//    public static final String Rest_api_v2 =  "http://124.232.135.241:8080/";
+    public static final String Rest_api_v3 =  "http://124.232.135.241:8080/";
     /**
      * UDP server ip
      * */
@@ -28,7 +29,7 @@ public class Contants {
 
     public static int DURATION_TOAST_MESSAGE = 1000 * 30; //默认消息弹窗间隔时间
 
-    public static int DURATION_PING = 20 * 1000; //默认10秒一次心跳
+    public static int DURATION_PING = 20 * 1000; //默认20秒一次心跳
 
     public static long LAST_PING_TIMESTAMP = System.currentTimeMillis();
 

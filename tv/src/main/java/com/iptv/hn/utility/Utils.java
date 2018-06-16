@@ -23,6 +23,12 @@ import android.view.Display;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.iptv.hn.Contants;
+import com.iptv.hn.app.BaseApplication;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -175,5 +181,40 @@ public class Utils {
             result += "0" + sec;
         }
         return result;
+    }
+
+    public static void sendUserBehavior(String mBusiId, int read_type,Long mInTime) {
+        String url = Contants.Rest_api_v2 + "mp_push/behavior?";
+        Rest restApi = new Rest(url);
+        restApi.addParam("account", Utils.getTvUserId(BaseApplication.getmContext()));
+        long outTime = System.currentTimeMillis()/1000;
+        //  关闭时的时间戳
+        restApi.addParam("timestamp", outTime); //
+
+        restApi.addParam("busi_id", mBusiId);
+        restApi.addParam("ip_addr", Utils.getPhoneIp(BaseApplication.getmContext()));
+        restApi.addParam("mac_addr", MACUtils.getLocalMacAddressFromBusybox());
+        restApi.addParam("read_type", read_type); //默认：0（到达用户,小窗口弹出时）； 10（用户点击确定键进入大窗口页面）；
+
+        restApi.addParam("in_webTime", mInTime); //当read_type=10时，该字段必传，用户进入web页面时间戳，单位秒
+        restApi.addParam("stay_time", outTime-mInTime); //当read_type=10时，该字段必传，用户在web页面停留时长，（单位秒）
+
+        restApi.post(new HttpCallback() {
+            @Override
+            public void onSuccess(JSONObject rawJsonObj, int state, String msg) throws JSONException {
+
+            }
+
+            @Override
+            public void onFailure(JSONObject rawJsonObj, int state, String msg) {
+
+            }
+
+            @Override
+            public void onError() {
+
+            }
+        });
+
     }
 }
