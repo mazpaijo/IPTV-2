@@ -184,6 +184,7 @@ public class Utils {
     }
 
     public static void sendUserBehavior(String mBusiId, int read_type,Long mInTime) {
+        Log.d("send", "sendUserBehavior: ");
         String url = Contants.Rest_api_v2 + "mp_push/behavior?";
         Rest restApi = new Rest(url);
         restApi.addParam("account", Utils.getTvUserId(BaseApplication.getmContext()));
@@ -202,17 +203,17 @@ public class Utils {
         restApi.post(new HttpCallback() {
             @Override
             public void onSuccess(JSONObject rawJsonObj, int state, String msg) throws JSONException {
-
+                Log.d("userBehavior", "onSuccess: 提交用户日志成功。。。");
             }
 
             @Override
             public void onFailure(JSONObject rawJsonObj, int state, String msg) {
-
+                Log.d("userBehavior", "onSuccess: onFailure。。。");
             }
 
             @Override
             public void onError() {
-
+                Log.d("userBehavior", "onSuccess: onError。。。");
             }
         });
 

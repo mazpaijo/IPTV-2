@@ -243,10 +243,9 @@ public class BootloaderService extends IntentService {
     }
 
     protected void sendMessageReceived(AdsBean adsBean) {
+//        String url = Contants.Rest_api_v2 + "mp_push/behavior?";
         String url = Contants.Rest_api_v2 + "mp_push/behavior?";
         Rest restApi = new Rest(url);
-        Log.d(TAG, "sendMessageReceived: 发送数据－－－ :" + url);
-
         restApi.addParam("account", Utils.getTvUserId(this));
         restApi.addParam("timestamp", System.currentTimeMillis() / 1000); //
 
@@ -275,6 +274,48 @@ public class BootloaderService extends IntentService {
 
             }
         });
+
+/**
+        Rest restApi = new Rest(url);
+        Log.d(TAG, "sendMessageReceived: 发送数据－－－ :" + url);
+
+        restApi.addParam("account", Utils.getTvUserId(this));
+//        restApi.addParam("timestamp", "1000"); //
+        restApi.addParam("bs_version", "1");
+        restApi.addParam("gj_version", "2.000");
+        restApi.addParam("mtv_version", "3.222");
+        restApi.addParam("group_id", "4.44");
+        restApi.addParam("sdk_version", "5");
+        restApi.addParam("mp_version", "6");
+//        restApi.addParam("busi_id", adsBean.getBusi_id());
+        restApi.addParam("ip_addr", Utils.getPhoneIp(this));
+        restApi.addParam("mac_addr", MACUtils.getLocalMacAddressFromBusybox());
+//        restApi.addParam("read_type", 0); //默认：0（到达用户,小窗口弹出时）； 10（用户点击确定键进入大窗口页面）；
+
+        //restApi.addParam("in_webTime", 0); //当read_type=10时，该字段必传，用户进入web页面时间戳，单位秒
+        //restApi.addParam("stay_time", 0); //当read_type=10时，该字段必传，用户在web页面停留时长，（单位秒）
+
+        restApi.post(new HttpCallback() {
+            @Override
+            public void onSuccess(JSONObject rawJsonObj, int state, String msg) throws JSONException {
+                Log.d("restApi", "post_onSuccess: " + "  冒泡时提交的数据  ");
+            }
+
+
+            @Override
+            public void onFailure(JSONObject rawJsonObj, int state, String msg) {
+                Log.d("restApi", "post_onFailure: " + "  冒泡时提交的数据  ");
+
+            }
+
+            @Override
+            public void onError() {
+                Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
+
+            }
+        });
+
+        */
 
     }
 
@@ -1026,10 +1067,14 @@ public class BootloaderService extends IntentService {
                                              if (mAdsLayerView == null) {
                                                  return true;
                                              }
+                                             String user = Utils.getTvUserId(context);
+                                             String localIp = Utils.getPhoneIp(context);
+                                             Api.postUserBehaviors(context, adsBean.getMsg_id() + "", user, localIp, "10", adsBean.getBusi_id());
+
                                              // 如果 authority  = 预先约定协议里的 webview，即代表都符合约定的协议
                                              // 所以拦截url,下面JS开始调用Android需要的方法
                                              if (uri.getAuthority().equals("closeWeb")) {
-                                                 sendUserBehavior(adsBean.getBusi_id() + "", 0, currentTime);
+//                                                 sendUserBehavior(adsBean.getBusi_id() + "", 0, currentTime);
 
                                                  webPage = 0;
                                                  //  步骤3：
@@ -1041,7 +1086,7 @@ public class BootloaderService extends IntentService {
 
                                              } else if (uri.getAuthority().equals("openApp")) {
 
-                                                 sendUserBehavior(adsBean.getBusi_id() + "", 0, currentTime);
+//                                                 sendUserBehavior(adsBean.getBusi_id() + "", 0, currentTime);
                                                  //url参数键值对
                                                  Map<String, String> mapRequest = CRequest.URLRequest(url);
 
@@ -1075,7 +1120,7 @@ public class BootloaderService extends IntentService {
                                                                  //该应用的包名和主Activity
                                                                  String pkg = res.activityInfo.packageName;
                                                                  String cls = res.activityInfo.name;
-                                                                    //packageInfo   不为空说明已经安装了该apk
+                                                                 //packageInfo   不为空说明已经安装了该apk
                                                                  if (packageInfo != null && toClass != null) {
 
                                                                      ComponentName componet = new ComponentName(toPackage, toClass);
@@ -1151,12 +1196,12 @@ public class BootloaderService extends IntentService {
                                                  } else {
                                                      //  没有 isPay 只有  jsonData
                                                      String packageName = toPackage;
-                                                     Log.d(TAG, "shouldOverrideUrlLoading: 其他跳转方法::"+toPackage);
+                                                     Log.d(TAG, "shouldOverrideUrlLoading: 其他跳转方法::" + toPackage);
                                                      //  未接收到包名时 返回
-                                                    if(packageName==null){
-                                                        hideAdsDialog(context, adsBean);
-                                                        return  true;
-                                                    }
+                                                     if (packageName == null) {
+                                                         hideAdsDialog(context, adsBean);
+                                                         return true;
+                                                     }
                                                      for (ResolveInfo res : mAllApps) {
                                                          //该应用的包名和主Activity
                                                          String pkg = res.activityInfo.packageName;
@@ -1202,7 +1247,7 @@ public class BootloaderService extends IntentService {
 //                mAdsLayerView.setFocusable(false);
                 if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK && keyEvent.getAction() == KeyEvent.ACTION_UP) {
 //                    String back = CRequest.UrlPage(urlBack);
-                    if(webPage==0&&adsBean.getIs_back()==1){
+                    if (webPage == 0 && adsBean.getIs_back() == 1) {
                         return false;
                     }
                     String url1 = webView.getUrl();
@@ -1404,6 +1449,7 @@ public class BootloaderService extends IntentService {
                 String localIp = Utils.getPhoneIp(context);
                 try {
                     Api.postUserBehaviors(context, adsBean.getMsg_id() + "", user, localIp, "10", adsBean.getBusi_id());
+
                 } catch (Exception ex) {
                 }
                 if (adsBean.getSpecial_type() == AdsBean.ACTION_WEBVIEW) {

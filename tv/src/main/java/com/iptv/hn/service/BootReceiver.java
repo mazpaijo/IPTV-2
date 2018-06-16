@@ -5,30 +5,21 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.ContactsContract;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.iptv.hn.Contants;
-import com.iptv.hn.MainActivity;
 import com.iptv.hn.entity.DeviceInfoBean;
 import com.iptv.hn.entity.MaopaoVersion;
-import com.iptv.hn.utility.Api;
 import com.iptv.hn.utility.HttpCallback;
 import com.iptv.hn.utility.PfUtil;
 import com.iptv.hn.utility.Rest;
 import com.iptv.hn.utility.Utils;
-import com.tencent.tinker.lib.tinker.TinkerInstaller;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-
-import java.util.concurrent.Executors;
 
 import static android.content.Context.ACTIVITY_SERVICE;
 
@@ -79,7 +70,7 @@ public class BootReceiver extends BroadcastReceiver {
 //             });
 
             PackageManager pManager = context.getPackageManager();
-            Rest rest = new Rest(Contants.Rest_api_v3+"mp_push_test/userinfo?");
+            Rest rest = new Rest(Contants.Rest_api_v2+"mp_push_test/userinfo?");
             DeviceInfoBean deviceData = com.iptv.hn.entity.Utils.getDeviceData(context, new DeviceInfoBean());
             rest.addParam("account",Utils.getTvUserId(context));
             rest.addParam("ip_addr",deviceData.getIp_addr());
@@ -94,15 +85,15 @@ public class BootReceiver extends BroadcastReceiver {
             rest.post(new HttpCallback() {
                 @Override
                 public void onSuccess(JSONObject rawJsonObj, int state, String msg) throws JSONException {
-                    Log.e("msg",msg);
+                    Log.e("mymsg",msg);
                 }
                 @Override
                 public void onFailure(JSONObject rawJsonObj, int state, String msg) {
-                    Log.e("msg",msg+"2");
+                    Log.e("mymsg",msg+"2");
                 }
                 @Override
                 public void onError() {
-                    Log.e("msg","err");
+                    Log.e("mymsg","err");
 
                 }
             });
