@@ -1021,8 +1021,7 @@ public class BootloaderService extends IntentService {
 //        settings.setJavaScriptCanOpenWindowsAutomatically(true);
         settings.setSupportZoom(true);
 //        settings.setLoadWithOverviewMode(true);
-        settings.setUseWideViewPort(true);
-
+//        settings.setUseWideViewPort(true);
 
         webView.setBackgroundColor(0);   //    －－ 设置透明
         webView.addJavascriptInterface(new JavaScriptObjectContext(context, webView, mAdsLayerView, adsBean), "AppFunction");
@@ -1042,6 +1041,7 @@ public class BootloaderService extends IntentService {
         // 步骤1：加载JS代码
         // 格式规定为:file:///android_asset/文件名.html
 //        webView.loadUrl("file:///android_asset/test.html");
+        //     －－－－－     当前时间
         final long currentTime = System.currentTimeMillis() / 1000;
 
         webView.requestFocus();
@@ -1069,7 +1069,7 @@ public class BootloaderService extends IntentService {
                                              }
                                              String user = Utils.getTvUserId(context);
                                              String localIp = Utils.getPhoneIp(context);
-                                             Api.postUserBehaviors(context, adsBean.getMsg_id() + "", user, localIp, "10", adsBean.getBusi_id());
+//                                             Api.postUserBehaviors(context, adsBean.getMsg_id() + "", user, localIp, "10", adsBean.getBusi_id());
 
                                              // 如果 authority  = 预先约定协议里的 webview，即代表都符合约定的协议
                                              // 所以拦截url,下面JS开始调用Android需要的方法
@@ -1130,7 +1130,6 @@ public class BootloaderService extends IntentService {
 //                                                                     String replace = query.replace(str, "");
 //                                                                     Log.d(TAG, "My_jsonData: "+replace);
                                                                      Log.d(TAG, "My_jsonData:  --  " + jsonData);
-//                                                                     Log.d(TAG, "My_jsonData: "+userToken);
                                                                      intentPay.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                                                      intentPay.putExtra("jsonData", jsonData);
                                                                      context.startActivity(intentPay);
@@ -1229,7 +1228,6 @@ public class BootloaderService extends IntentService {
 
                                          webPage += 1;
                                          String s = CRequest.UrlPage(url);
-
                                          if (webPage == 1) {
                                              bigWebUrl = s;
                                              Log.d(TAG, "onKeyWebPage: load :" + webPage + "   " + s);
