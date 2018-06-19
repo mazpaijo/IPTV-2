@@ -1059,9 +1059,8 @@ public class BootloaderService extends IntentService {
                                          //假定传入进来的 url = "js://webview?arg1=111&arg2=222"（同时也是约定好的需要拦截的）
 //                                          Log.d(TAG, "shouldOverrideUrlLoading: -- : "+ url);
                                          Uri uri = Uri.parse(url);
-                                         // 如果url的协议 = 预先约定的 js 协议
+                                         // 如果url的协议 = 预先约定的 js 协议 就解析往下解析参数
 
-                                         // 就解析往下解析参数
                                          if (uri.getScheme().equals("action")) {
 
                                              if (mAdsLayerView == null) {
