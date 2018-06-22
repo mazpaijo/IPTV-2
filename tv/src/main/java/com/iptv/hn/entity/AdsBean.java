@@ -22,7 +22,7 @@ public class AdsBean{
 
     public String time_color;
 
-    public String pay_mod;
+    public String pay_type;
 
     private int special_type; //跳转类型，1为url,2为app
     private String special_url; //跳转地址
@@ -96,12 +96,12 @@ public class AdsBean{
         this.show_time = show_time;
     }
 
-    public String getPay_mod() {
-        return pay_mod;
+    public String getPay_type() {
+        return pay_type;
     }
 
-    public void setPay_mod(String pay_mod) {
-        this.pay_mod = pay_mod;
+    public void setPay_type(String pay_type) {
+        this.pay_type = pay_type;
     }
 
     public int getFile_type() {

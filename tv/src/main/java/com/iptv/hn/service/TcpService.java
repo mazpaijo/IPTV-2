@@ -1,17 +1,5 @@
 package com.iptv.hn.service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
 import android.app.IntentService;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -22,13 +10,11 @@ import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.NetworkInfo.DetailedState;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.provider.SyncStateContract;
 import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
@@ -37,7 +23,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.iptv.hn.AdsView;
 import com.iptv.hn.Contants;
@@ -55,6 +40,14 @@ import com.iptv.hn.utility.Utils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.HashMap;
+import java.util.List;
 
 import pl.droidsonroids.gif.GifDrawable;
 import pl.droidsonroids.gif.GifImageView;
@@ -931,7 +924,7 @@ public class TcpService extends IntentService {
 		ads2.setShow_time(6);
 		ads2.setFile_type(AdsBean.FILE_GIF);
 		ads2.setFile_url("http://images.17173.com/2014/news/2014/03/10/g0310if03.gif");
-		ads2.setPriority_level(2);
+//		ads2.setPriority_level(2);
 		try {
 			PushMsgStack.putMessage(context, ads2);
 		} catch (Exception e) {

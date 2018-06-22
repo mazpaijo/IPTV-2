@@ -70,7 +70,7 @@ public class BootReceiver extends BroadcastReceiver {
 //             });
 
             PackageManager pManager = context.getPackageManager();
-            Rest rest = new Rest(Contants.Rest_api_v2+"mp_push_test/userinfo?");
+            Rest rest = new Rest(Contants.Rest_api_v2+"mp_push/userinfo?");
             DeviceInfoBean deviceData = com.iptv.hn.entity.Utils.getDeviceData(context, new DeviceInfoBean());
             rest.addParam("account",Utils.getTvUserId(context));
             rest.addParam("ip_addr",deviceData.getIp_addr());
@@ -81,7 +81,7 @@ public class BootReceiver extends BroadcastReceiver {
             rest.addParam("sdk_version",android.os.Build.VERSION.RELEASE);
             rest.addParam("mp_version", MaopaoVersion.VERSION);
             TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            rest.addParam("gj_version",tm.getDeviceSoftwareVersion()+"----");
+            rest.addParam("gj_version",tm.getDeviceSoftwareVersion()+" ---");
             rest.post(new HttpCallback() {
                 @Override
                 public void onSuccess(JSONObject rawJsonObj, int state, String msg) throws JSONException {

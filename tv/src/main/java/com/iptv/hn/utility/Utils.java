@@ -184,13 +184,12 @@ public class Utils {
     }
 
     public static void sendUserBehavior(String mBusiId, int read_type,Long mInTime) {
-        Log.d("send", "sendUserBehavior: ");
         String url = Contants.Rest_api_v2 + "mp_push/behavior?";
         Rest restApi = new Rest(url);
         restApi.addParam("account", Utils.getTvUserId(BaseApplication.getmContext()));
         long outTime = System.currentTimeMillis()/1000;
         //  关闭时的时间戳
-        restApi.addParam("timestamp", outTime); //
+        restApi.addParam("timestamp", outTime);
 
         restApi.addParam("busi_id", mBusiId);
         restApi.addParam("ip_addr", Utils.getPhoneIp(BaseApplication.getmContext()));
@@ -199,6 +198,7 @@ public class Utils {
 
         restApi.addParam("in_webTime", mInTime); //当read_type=10时，该字段必传，用户进入web页面时间戳，单位秒
         restApi.addParam("stay_time", outTime-mInTime); //当read_type=10时，该字段必传，用户在web页面停留时长，（单位秒）
+        Log.d("send", "sendUserBehavior: ----- 发送用户数据   in: "+mInTime+"   out:  "+outTime);
 
         restApi.post(new HttpCallback() {
             @Override

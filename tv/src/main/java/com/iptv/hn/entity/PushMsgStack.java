@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
 
-import com.iptv.hn.service.BootService;
 import com.iptv.hn.utility.JsonUtil;
 import com.iptv.hn.utility.Md5Util;
 import com.iptv.hn.utility.PfUtil;
@@ -49,7 +48,7 @@ public class PushMsgStack {
         json.put("down_type", adsBean.getDown_type());
         json.put("down_url", adsBean.getDown_url());
         json.put("priority_level", adsBean.getPriority_level());
-        json.put("pay_mod", adsBean.getPay_mod());
+        json.put("pay_type", adsBean.getPay_type());
         json.put("exce_starttime", adsBean.getExce_starttime());
         json.put("exce_endtime", adsBean.getExce_endtime());
 

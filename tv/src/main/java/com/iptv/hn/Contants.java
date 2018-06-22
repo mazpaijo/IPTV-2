@@ -12,9 +12,14 @@ public class Contants {
 //正式地址
 //   public static final String Rest_api_v2 = "http://124.232.135.246:9090/";
    //测试地址
-    public static final String Rest_api_v2 =  "http://124.232.135.241:8002/";
-//    public static final String Rest_api_v2 =  "http://124.232.135.241:8080/";
+//    public static final String Rest_api_v2 =  "http://124.232.135.241:8002/";
+    //   新地址
+//    public static final String Rest_api_v2 =  "http://124.232.135.241:8009/";
     public static final String Rest_api_v3 =  "http://124.232.135.241:8080/";
+
+    //  ---  上线正式地址
+    public static final String Rest_api_v2 =  "http://124.232.135.246:9090/";
+
     /**
      * UDP server ip
      * */
@@ -35,7 +40,7 @@ public class Contants {
 
     public static boolean isInMangoLiving = false;
 
-    public static int APP_INIT_TIME = 1000 * 30; //客户端启动后，向服务器请求数据的时间间隔
+    public static int APP_INIT_TIME = 1000 * 120; //客户端启动后，向服务器请求数据的时间间隔
 
 }
 

@@ -1,20 +1,11 @@
 package com.iptv.hn.service;
 
-import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import android.widget.Toast;
+import android.util.Log;
 
 import com.iptv.hn.Contants;
-import com.iptv.hn.utility.Api;
-import com.iptv.hn.utility.HttpCallback;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import static android.content.Context.ACTIVITY_SERVICE;
 
 /**
  * Created by Administrator on 2017/11/6.
@@ -33,6 +24,7 @@ public class MangoLiveReceiver extends BroadcastReceiver {
         int status = 0;
         try {
             status = intent.getIntExtra("status", 0);
+            Log.d("mangguo", "onReceive: "+status);
         }  catch (Exception ex) {
             ex.printStackTrace();
         }

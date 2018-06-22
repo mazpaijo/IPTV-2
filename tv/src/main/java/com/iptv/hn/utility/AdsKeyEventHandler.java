@@ -183,11 +183,11 @@ public class AdsKeyEventHandler {
         if (url.contains("?")) {
             url = url + "&userId=" + Utils.getTvUserId(context) + "&userToken=" + userToken+
                     "&mac="+deviceData.getMac_addr()+"&ip="+deviceData.getIp_addr()+
-                    "&payMod="+adsBean.getPay_mod();
+                    "&payMod="+adsBean.getPay_type();
         } else {
             url = url + "?userId=" + Utils.getTvUserId(context)
                     + "&userToken=" + userToken+"&mac="+deviceData.getMac_addr()
-                    +"&ip="+deviceData.getIp_addr()+"&payMod="+adsBean.getPay_mod();
+                    +"&ip="+deviceData.getIp_addr()+"&payMod="+adsBean.getPay_type();
         }
         Log.e("test",url);
         Intent intent = new Intent();

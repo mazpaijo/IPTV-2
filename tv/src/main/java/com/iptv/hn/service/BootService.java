@@ -2,8 +2,8 @@ package com.iptv.hn.service;
 
 import android.app.IntentService;
 import android.content.BroadcastReceiver;
-import android.content.Intent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -20,15 +20,14 @@ import android.widget.TextView;
 import com.iptv.hn.AdsView;
 import com.iptv.hn.Contants;
 import com.iptv.hn.PacketManager;
+import com.iptv.hn.R;
 import com.iptv.hn.entity.AdsBean;
 import com.iptv.hn.entity.PushMsgStack;
 import com.iptv.hn.utility.AdsKeyEventHandler;
 import com.iptv.hn.utility.Api;
 import com.iptv.hn.utility.Callback;
 import com.iptv.hn.utility.DownloadManager;
-import com.iptv.hn.R;
 import com.iptv.hn.utility.JsonUtil;
-import com.iptv.hn.utility.PfUtil;
 import com.iptv.hn.utility.Utils;
 
 import org.json.JSONException;
@@ -39,7 +38,6 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -714,7 +712,7 @@ public class BootService extends IntentService {
         ads2.setShow_time(6);
         ads2.setFile_type(AdsBean.FILE_GIF);
         ads2.setFile_url("http://images.17173.com/2014/news/2014/03/10/g0310if03.gif");
-        ads2.setPriority_level(2);
+//        ads2.setPriority_level(2);
         try {
             PushMsgStack.putMessage(context, ads2);
         } catch (Exception e) {

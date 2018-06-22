@@ -31,6 +31,7 @@ import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceError;
@@ -139,11 +140,11 @@ public class BootloaderService extends IntentService {
 
     //从服务器获取数据
     protected void pullMessages() {
-        Log.d("iptv", "pullMessages: --------  ");
-
+//        Log.d("mangguo", "pullMessages: --------  ");
         //正式地址
 //        String url = Contants.Rest_api_v2 + "mp_push/strategy?";
-        String url = Contants.Rest_api_v2 + "mp_push_test/strategy?";
+
+        String url = Contants.Rest_api_v2 + "mp_push/strategy?";
         //测试地址
         Rest restApi = new Rest(url);
         String tvUserId = Utils.getTvUserId(this);
@@ -174,18 +175,12 @@ public class BootloaderService extends IntentService {
                     }
 
                     Contants.APP_INIT_TIME = begin_time * 1000;
-//
-//                    PfUtil pfUtil = PfUtil.getInstance();
-//                    pfUtil.init(BootloaderService.this);
-//                    pfUtil.putLong("app_init_time", Contants.APP_INIT_TIME);
+
+                    PfUtil pfUtil = PfUtil.getInstance();
+                    pfUtil.init(BootloaderService.this);
+                    pfUtil.putLong("app_init_time", Contants.APP_INIT_TIME);
 
 
-                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            pullMessages();
-                        }
-                    }, Contants.DURATION_PING);
                 }
 
                 if (rawJsonObj.has("list")) {
@@ -215,30 +210,24 @@ public class BootloaderService extends IntentService {
             @Override
             public void onError() {
                 Log.i("httpCall", "onError 网络请求错误 ");
-                //以下为没网情况下测试， 记得注释掉
 
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        pullMessages();
-                    }
-                }, Contants.DURATION_PING);
 
             }
         };
 
         if (!Contants.isInMangoLiving) {
             // 在芒果tv直播中，不弹窗
+            Log.d(TAG, "mangguo:"+"网络请求");
             restApi.get(callback);
         }
 
-//        Log.d(TAG, "pullMessages: " + Contants.DURATION_PING);
-//        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                pullMessages();
-//            }
-//        }, Contants.DURATION_PING);
+        Log.d(TAG, "pullMessages: " + Contants.DURATION_PING);
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                pullMessages();
+            }
+        }, Contants.DURATION_PING);
 
     }
 
@@ -323,7 +312,6 @@ public class BootloaderService extends IntentService {
         AdsBean bean = adsBean;
         Log.d(TAG, "showCommingMessage: showBean :  " + (bean != null));
         if (bean != null) {
-            Log.i("showBean", "common msg: " + bean.toString() + "  Toast : " + Contants.DURATION_TOAST_MESSAGE);
             showAdsTemplate(bean);
         } else {
 //            int duration = Contants.DURATION_TOAST_MESSAGE;
@@ -375,7 +363,7 @@ public class BootloaderService extends IntentService {
                             return;
                         }
 
-                        if (Contants.isInMangoLiving && adsBean.getLive_swift() == 0) {
+                        if (Contants.isInMangoLiving ) {
                             // 在芒果tv直播中，不弹窗
 //                            PushMsgStack.removeMessage(BootloaderService.this, adsBean);
                             return;
@@ -996,7 +984,7 @@ public class BootloaderService extends IntentService {
     /**
      * 显示交互式按钮
      */
-    public void showWebView(LayoutInflater inflater, final Context context, WindowManager wm,
+    public void showWebView(final LayoutInflater inflater, final Context context, final WindowManager wm,
                             final WindowManager.LayoutParams params, final AdsBean adsBean, String localPath) {
 
         //打开一个小窗口web页面
@@ -1035,8 +1023,10 @@ public class BootloaderService extends IntentService {
         } else {
             url = url + "?userId=" + Utils.getTvUserId(context) + "&userToken=" + userToken + "&mac=" + deviceData.getMac_addr() + "&ip=" + deviceData.getIp_addr();
         }
-        Log.d(TAG, "showWebViewUrl: " + url);
         webView.loadUrl(url);
+        Map<String, String> mapRequest = CRequest.URLRequest(url);
+        final String isView = mapRequest.get("isView");
+        Log.d(TAG, "showWebViewUrl: " + url+"   is= "+isView);
 
         // 步骤1：加载JS代码
         // 格式规定为:file:///android_asset/文件名.html
@@ -1050,9 +1040,10 @@ public class BootloaderService extends IntentService {
 
         // 复写WebViewClient类的shouldOverrideUrlLoading方法
         webView.setWebViewClient(new WebViewClient() {
+
                                      @Override
                                      public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                                         Log.d(TAG, "shouldOverrideUrlLoading: " + url);
+                                         Log.d(TAG, "shouldOverrideUrlLoadingtt: " + url+"  view "+mAdsLayerView);
 
                                          // 步骤2：根据协议的参数，判断是否是所需要的url
                                          // 一般根据scheme（协议格式） & authority（协议名）判断（前两个参数）
@@ -1062,7 +1053,6 @@ public class BootloaderService extends IntentService {
                                          // 如果url的协议 = 预先约定的 js 协议 就解析往下解析参数
 
                                          if (uri.getScheme().equals("action")) {
-
                                              if (mAdsLayerView == null) {
                                                  return true;
                                              }
@@ -1086,6 +1076,7 @@ public class BootloaderService extends IntentService {
                                              } else if (uri.getAuthority().equals("openApp")) {
 
 //                                                 sendUserBehavior(adsBean.getBusi_id() + "", 0, currentTime);
+
                                                  //url参数键值对
                                                  Map<String, String> mapRequest = CRequest.URLRequest(url);
 
@@ -1232,6 +1223,64 @@ public class BootloaderService extends IntentService {
                                              Log.d(TAG, "onKeyWebPage: load :" + webPage + "   " + s);
                                          }
 
+                                        //  此判断用来打开新的webView 解决 不能全屏bug
+                                         if(isView!=null&&isView.equals("1")){
+
+                                             sendUserBehavior(adsBean.getBusi_id() + "", 0, currentTime);
+
+                                             final View bigView = inflater.inflate(R.layout.layout_ads_big_webview, null);
+                                             final WebView bigWeb = (WebView) bigView.findViewById(R.id.big_web);
+                                             bigView.setBackgroundColor(context.getResources().getColor(R.color.transparent));
+
+                                             wm.removeViewImmediate(mAdsLayerView);
+                                             mAdsLayerView.setVisibility(View.GONE);
+                                             mAdsLayerView = null;
+                                             wm.addView(bigView,params);
+
+                                             bigView.setFocusable(true);
+
+
+                                             WebSettings settings1 = bigWeb.getSettings();
+                                             settings1.setJavaScriptEnabled(true);
+                                             settings1.setSupportZoom(true);
+
+                                             ViewGroup.LayoutParams layoutParams = bigWeb.getLayoutParams();
+                                                layoutParams.width = wm.getDefaultDisplay().getWidth();
+                                                layoutParams.height = wm.getDefaultDisplay().getHeight();
+                                                bigWeb.setLayoutParams(layoutParams);
+                                             bigWeb.loadUrl(url);
+                                             Log.d(TAG, "onKeyBackUrl: "+bigWeb.getUrl());
+                                             bigWeb.addJavascriptInterface(new JavaScriptObjectContext(context, bigWeb, bigView, adsBean), "AppFunction");
+                                             bigWeb.setFocusable(true);
+                                             bigWeb.requestFocus();
+                                             bigWeb.setWebViewClient(new WebViewClient(){
+                                                 @Override
+                                                 public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                                                     Log.d(TAG, "shouldOverrideUrlLoadingtt: load : "+url);
+                                                     return super.shouldOverrideUrlLoading(view, url);
+                                                 }
+                                             });
+
+                                             bigWeb.setOnKeyListener(new View.OnKeyListener() {
+                                                 @Override
+                                                 public boolean onKey(View view, int i, KeyEvent keyEvent) {
+                                                     Log.d(TAG, "onKey:=======  "+keyEvent);
+                                                     if(keyEvent.getKeyCode()==KeyEvent.KEYCODE_BACK&&keyEvent.getAction()==KeyEvent.ACTION_UP){
+                                                         Log.d(TAG, "shouldOverrideUrlLoadingtt: back: "+bigWeb.getUrl());
+                                                         if(bigWeb.canGoBack()){
+                                                             bigWeb.goBack();
+                                                         }else {
+                                                             WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+                                                             windowManager.removeViewImmediate(bigView);
+                                                             bigView.setVisibility(View.GONE);
+
+                                                         }
+                                                     }
+                                                     return false;
+                                                 }
+                                             });
+                                             return true;
+                                         }
                                          return super.shouldOverrideUrlLoading(view, url);
                                      }
                                  }
@@ -1243,6 +1292,7 @@ public class BootloaderService extends IntentService {
             public boolean onKey(View view, int i, KeyEvent keyEvent) {
 //                mAdsLayerView.setFocusable(false);
                 if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK && keyEvent.getAction() == KeyEvent.ACTION_UP) {
+                    Log.d(TAG, "onKeyUrl: "+webView.getUrl());
 //                    String back = CRequest.UrlPage(urlBack);
                     if (webPage == 0 && adsBean.getIs_back() == 1) {
                         return false;
@@ -1257,7 +1307,7 @@ public class BootloaderService extends IntentService {
                         mAdsLayerView = null;
                         webPage = 0;
                     } else if (webView.canGoBack() && webPage > 1) {
-
+                        Log.d(TAG, "onKeyWebPage onKey:back ");
                         webView.goBack();
                         webPage -= 1;
                     } else {
@@ -1403,6 +1453,7 @@ public class BootloaderService extends IntentService {
 
     }
 
+    private  int imageToWeb=0;
     /**
      * 显示图片
      *
@@ -1423,7 +1474,7 @@ public class BootloaderService extends IntentService {
         final time_color time_color = JsonUtil.jsonStringToObject(adsBean.getTime_color(), time_color.class);
         final time_text time_text = JsonUtil.jsonStringToObject(adsBean.getTime_text(), time_text.class);
         adsView.requestFocus();
-
+        final long currentTime = System.currentTimeMillis() / 1000;
         adsView.setKeyBoardCallback(new Callback() {
             @Override
             public void onStart(Object... o) {
@@ -1444,16 +1495,17 @@ public class BootloaderService extends IntentService {
                 //行为日志上报
                 String user = Utils.getTvUserId(context);
                 String localIp = Utils.getPhoneIp(context);
-                try {
-                    Api.postUserBehaviors(context, adsBean.getMsg_id() + "", user, localIp, "10", adsBean.getBusi_id());
-
-                } catch (Exception ex) {
-                }
+//                try {
+//                    Api.postUserBehaviors(context, adsBean.getMsg_id() + "", user, localIp, "10", adsBean.getBusi_id());
+                    sendUserBehavior(adsBean.getBusi_id()+"",10,currentTime);
+//                } catch (Exception ex) {
+//                }
                 if (adsBean.getSpecial_type() == AdsBean.ACTION_WEBVIEW) {
                     new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            Log.d(TAG, "run: myShow --  post_delay ");
+//                            Log.d(TAG, "run: myShow --  post_delay ");
+                            imageToWeb=1;
                             showWeb(adsBean);
                         }
                     }, 386);
@@ -1572,7 +1624,9 @@ public class BootloaderService extends IntentService {
                     }
                 }
 
-                hideAdsDialog(context, adsBean);
+                if(imageToWeb==0){
+                    hideAdsDialog(context, adsBean);
+                }
 
             }
         }).start();
@@ -1603,17 +1657,21 @@ public class BootloaderService extends IntentService {
         wm.addView(mAdsLayerView, params);
         final AdsView adsView = (AdsView) mAdsLayerView.findViewById(R.id.adsView);
         final WebView webView = (WebView) mAdsLayerView.findViewById(R.id.webview);
+        ViewGroup.LayoutParams layoutParams = webView.getLayoutParams();
+        layoutParams.height = wm.getDefaultDisplay().getHeight();
+        layoutParams.width = wm.getDefaultDisplay().getWidth();
+//        webView.setLayoutParams(layoutParams);
         WebSettings settings = webView.getSettings();
-        settings.setAllowContentAccess(true);
+//        settings.setAllowContentAccess(true);
         settings.setJavaScriptEnabled(true);
-        settings.setBuiltInZoomControls(false);
+//        settings.setBuiltInZoomControls(false);
         settings.setJavaScriptCanOpenWindowsAutomatically(true);//js和android交互
-        settings.setSupportZoom(false);//关闭zoom按钮
-        settings.setBuiltInZoomControls(false);//关闭zoom
-        settings.setUseWideViewPort(true);//设置webview自适应屏幕大小
+        settings.setSupportZoom(true);//关闭zoom按钮
+//        settings.setBuiltInZoomControls(false);//关闭zoom
+//        settings.setUseWideViewPort(true);//设置webview自适应屏幕大小
         settings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NARROW_COLUMNS);//设置，可能的话使所有列的宽度不超过屏幕宽度
 //        settings.setLoadWithOverviewMode(true);//设置webview自适应屏幕大小 这条命令 web  不能全屏－－
-        settings.setDomStorageEnabled(true);//设置可以使用localStorage
+//        settings.setDomStorageEnabled(true);//设置可以使用localStorage
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         }
@@ -1624,11 +1682,11 @@ public class BootloaderService extends IntentService {
         if (url.contains("?")) {
             url = url + "&userId=" + Utils.getTvUserId(this) + "&userToken=" + userToken +
                     "&mac=" + deviceData.getMac_addr() + "&ip=" + deviceData.getIp_addr() +
-                    "&payMod=" + adsBean.getPay_mod();
+                    "&payType=" + adsBean.getPay_type();
         } else {
             url = url + "?userId=" + Utils.getTvUserId(this)
                     + "&userToken=" + userToken + "&mac=" + deviceData.getMac_addr()
-                    + "&ip=" + deviceData.getIp_addr() + "&payMod=" + adsBean.getPay_mod();
+                    + "&ip=" + deviceData.getIp_addr() + "&payType=" + adsBean.getPay_type();
         }
         Log.d(TAG, "showWeb: weburl:" + url);
         webView.loadUrl(url);
@@ -1637,8 +1695,8 @@ public class BootloaderService extends IntentService {
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
-                return true;
+
+                return super.shouldOverrideUrlLoading(view, url);
             }
 
             @Override
@@ -1660,6 +1718,7 @@ public class BootloaderService extends IntentService {
             }
         });
 //
+
 //        webView.setWebChromeClient(new WebChromeClient() {
 //            @Override
 //            public void onProgressChanged(WebView view, int newProgress) {
@@ -1674,7 +1733,7 @@ public class BootloaderService extends IntentService {
         webView.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View view, int i, KeyEvent keyEvent) {
-                Log.d(TAG, "onKey: myKeyEvent web : " + keyEvent.getKeyCode() + "  canBack: " + webView.canGoBack() + "  -- " + keyEvent);
+//                Log.d(TAG, "onKey: myKeyEvent web : " + keyEvent.getKeyCode() + "  canBack: " + webView.canGoBack() + "  -- " + keyEvent);
 //                mAdsLayerView.setFocusable(false);
                 if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK && keyEvent.getAction() == KeyEvent.ACTION_UP) {
                     if (webView.canGoBack()) {
@@ -1684,6 +1743,7 @@ public class BootloaderService extends IntentService {
                         windowManager.removeViewImmediate(mAdsLayerView);
                         mAdsLayerView.setVisibility(View.GONE);
                         mAdsLayerView = null;
+                        imageToWeb=0;
                     }
                 }
                 return false;
