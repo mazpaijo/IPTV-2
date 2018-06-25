@@ -34,8 +34,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -210,7 +208,6 @@ public class BootloaderService extends IntentService {
             @Override
             public void onError() {
                 Log.i("httpCall", "onError 网络请求错误 ");
-
 
             }
         };
@@ -1676,7 +1673,7 @@ public class BootloaderService extends IntentService {
             webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         }
         String url = adsBean.getSpecial_url();
-        Log.d(TAG, "showWeb: weburl:" + url);
+//        Log.d(TAG, "showWeb: weburl:" + url);
         String userToken = Utils.getTvUserToken(this);
         DeviceInfoBean deviceData = com.iptv.hn.entity.Utils.getDeviceData(this, new DeviceInfoBean());
         if (url.contains("?")) {
@@ -1688,7 +1685,7 @@ public class BootloaderService extends IntentService {
                     + "&userToken=" + userToken + "&mac=" + deviceData.getMac_addr()
                     + "&ip=" + deviceData.getIp_addr() + "&payType=" + adsBean.getPay_type();
         }
-        Log.d(TAG, "showWeb: weburl:" + url);
+        Log.d(TAG, "showWedUrl: weburl:" + url);
         webView.loadUrl(url);
         webView.requestFocus();
         webView.setWebViewClient(new WebViewClient() {
@@ -1699,25 +1696,9 @@ public class BootloaderService extends IntentService {
                 return super.shouldOverrideUrlLoading(view, url);
             }
 
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-                Log.d(TAG, "onPageFinished: ");
-            }
 
-            @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                super.onPageStarted(view, url, favicon);
-                Log.d(TAG, "onPageStarted: ");
-            }
-
-            @Override
-            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                super.onReceivedError(view, request, error);
-
-            }
         });
-//
+
 
 //        webView.setWebChromeClient(new WebChromeClient() {
 //            @Override
@@ -1733,10 +1714,12 @@ public class BootloaderService extends IntentService {
         webView.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View view, int i, KeyEvent keyEvent) {
-//                Log.d(TAG, "onKey: myKeyEvent web : " + keyEvent.getKeyCode() + "  canBack: " + webView.canGoBack() + "  -- " + keyEvent);
-//                mAdsLayerView.setFocusable(false);
+
                 if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK && keyEvent.getAction() == KeyEvent.ACTION_UP) {
+//                    WebBackForwardList webBackForwardList = webView.copyBackForwardList();
+//                    Log.d(TAG, "onKey: size:"+webBackForwardList.getSize()+" index: "+webBackForwardList.getCurrentIndex());
                     if (webView.canGoBack()) {
+                        webView.goBack();
                         webView.goBack();
                     } else {
                         WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
