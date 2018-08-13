@@ -7,8 +7,8 @@ android {
         applicationId "com.iptv.maopao"
         minSdkVersion 17
         targetSdkVersion 17
-        versionCode 6
-        versionName "2.3"
+        versionCode 7
+        versionName "2.4"
         externalNativeBuild {
             cmake {
                 cppFlags "-frtti -fexceptions"
@@ -46,6 +46,7 @@ release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
+
         }
     }
     productFlavors {
@@ -69,11 +70,11 @@ dependencies {
     compile files('libs/ksoap2-android-assembly-3.0.0-RC.4-jar-with-dependencies.jar')
     compile 'com.google.code.gson:gson:2.2.4'
     //可选，用于生成application类
-    provided('com.tencent.tinker:tinker-android-anno:1.7.7')
+//    provided('com.tencent.tinker:tinker-android-anno:1.7.7')
     //tinker的核心库
-    compile('com.tencent.tinker:tinker-android-lib:1.7.7')
+//    compile('com.tencent.tinker:tinker-android-lib:1.7.7')
     //播放器
-    compile 'tv.danmaku.ijk.media:ijkplayer-java:0.6.0'
+//    compile 'tv.danmaku.ijk.media:ijkplayer-java:0.6.0'
 
 }
 

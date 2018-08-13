@@ -1,7 +1,6 @@
 package com.iptv.hn.utility;
 
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.RelativeLayout;
 
@@ -80,6 +79,7 @@ public class WidgetController {
 //        layoutParams.bottomMargin = y+margin.height;
         layoutParams.width =float_position.getFloat_width();
         layoutParams.height =float_position.getFloat_height();
+//        layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         view.setLayoutParams(layoutParams);
     }
 }  

@@ -1,8 +1,6 @@
 package com.iptv.hn.utility;
 
 import android.content.Context;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.util.Log;
 
 import com.iptv.hn.Contants;
@@ -121,22 +119,22 @@ public class Api {
         String mac = MACUtils.getLocalMacAddressFromBusybox();
         restApi.addParam("ext2", mac==null ? "" : mac);
 
-//        restApi.get(new HttpCallback() {
-//            @Override
-//            public void onSuccess(JSONObject rawJsonObj, int state, String msg) throws JSONException {
-//                Log.i("iptv", "postUserBehaviors success");
-//            }
-//
-//            @Override
-//            public void onFailure(JSONObject rawJsonObj, int state, String msg) {
-//
-//            }
-//
-//            @Override
-//            public void onError() {
-//
-//            }
-//        });
+        restApi.get(new HttpCallback() {
+            @Override
+            public void onSuccess(JSONObject rawJsonObj, int state, String msg) throws JSONException {
+                Log.i("iptv", "postUserBehaviors success");
+            }
+
+            @Override
+            public void onFailure(JSONObject rawJsonObj, int state, String msg) {
+
+            }
+
+            @Override
+            public void onError() {
+
+            }
+        });
     }
 
     /**
@@ -204,7 +202,7 @@ public class Api {
                         //默认消息间隔时间
                         try {
                             int duration = Integer.parseInt(value);
-                            Contants.DURATION_TOAST_MESSAGE = duration * 1000;
+//                            Contants.DURATION_TOAST_MESSAGE = duration * 1000;
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }

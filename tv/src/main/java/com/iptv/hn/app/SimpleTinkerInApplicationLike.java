@@ -1,19 +1,9 @@
 package com.iptv.hn.app;
 
-import android.app.Application;
-import android.content.Context;
-import android.content.Intent;
-
-import com.tencent.tinker.anno.DefaultLifeCycle;
-import com.tencent.tinker.lib.tinker.TinkerInstaller;
-import com.tencent.tinker.loader.app.ApplicationLifeCycle;
-import com.tencent.tinker.loader.app.ApplicationLike;
-import com.tencent.tinker.loader.shareutil.ShareConstants;
-
 /**
  * Created by 60905 on 2018/3/2.
  */
-@DefaultLifeCycle(application = ".SimpleTinkerInApplication",
+/*@DefaultLifeCycle(application = ".SimpleTinkerInApplication",
         flags = ShareConstants.TINKER_ENABLE_ALL,
         loadVerifyFlag = false)
 public class SimpleTinkerInApplicationLike extends ApplicationLike {
@@ -31,4 +21,4 @@ public class SimpleTinkerInApplicationLike extends ApplicationLike {
         super.onCreate();
         TinkerInstaller.install(this);
     }
-}
+}*/

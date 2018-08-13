@@ -47,7 +47,6 @@
         android:text="@string/ads_text"
         android:textColor="@color/white"
         android:textSize="16sp"
-        android:id="@+id/ok"
         android:layout_margin="3dp"
         android:visibility="gone"
         />
@@ -58,7 +57,6 @@
         android:text="@string/ads_text"
         android:textColor="@color/white"
         android:textSize="16sp"
-        android:id="@+id/cancle"
         android:layout_margin="3dp"
         android:visibility="gone"
         />

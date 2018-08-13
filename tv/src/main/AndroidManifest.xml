@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.iptv.hn">
+    <uses-permission  android:name = "android.permission.GET_TASKS"/>
    <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -70,6 +71,8 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+
+                <!--<action android:name="com.android.SilenceInstall.Over"/>-->
             </intent-filter>
         </receiver>
 
@@ -109,6 +112,7 @@
         <meta-data
             android:name="TINKER_ID"
             android:value="tinker_id_6235657" />
+
     </application>
 
 </manifest>

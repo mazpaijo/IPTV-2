@@ -15,13 +15,10 @@
 package com.iptv.hn;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
-
-import com.iptv.hn.service.BootloaderService;
 
 /*
  * MainActivity class that loads MainFragment
@@ -41,8 +38,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mClickView = findViewById(R.id.test);
         mClickView.setOnClickListener(this);
 
-        Intent intentService = new Intent(this, BootloaderService.class);
-        startService(intentService);
+//        Intent intentService = new Intent(this, BootloaderService.class);
+//        startService(intentService);
 
         finish();
 

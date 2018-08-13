@@ -24,8 +24,9 @@ public class MangoLiveReceiver extends BroadcastReceiver {
         int status = 0;
         try {
             status = intent.getIntExtra("status", 0);
-            Log.d("mangguo", "onReceive: "+status);
-        }  catch (Exception ex) {
+            Log.d("mangguo", "onReceive: " + status);
+
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
 
@@ -34,9 +35,9 @@ public class MangoLiveReceiver extends BroadcastReceiver {
         } else if (status == 1) {
             Contants.isInMangoLiving = false;
         }
-
-
-
+     if(liveListener!=null){
+            liveListener.onLive(status);
+     }
 //        if ( !isServiceRunning(context)) {
 //                Api.getConfigure(context, new HttpCallback() {
 //                    @Override
@@ -71,4 +72,13 @@ public class MangoLiveReceiver extends BroadcastReceiver {
 //        }
 //        return false;
 //    }
+    private static LiveListener liveListener;
+
+    public interface LiveListener{
+        void onLive(int status);
+    }
+
+    public static void setLiveListener(LiveListener mLiveListener){
+        liveListener=mLiveListener;
+    }
 }

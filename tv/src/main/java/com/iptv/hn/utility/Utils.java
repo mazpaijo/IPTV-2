@@ -15,6 +15,8 @@
 package com.iptv.hn.utility;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Point;
 import android.net.Uri;
@@ -34,6 +36,8 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
+
+import static android.content.pm.PackageManager.GET_ACTIVITIES;
 
 /**
  * A collection of utility methods, all static.
@@ -183,19 +187,20 @@ public class Utils {
         return result;
     }
 
-    public static void sendUserBehavior(String mBusiId, int read_type,Long mInTime) {
+    public static void sendUserBehavior(String mBusiId, int read_type,Long mInTime,Long outTime) {
+
         String url = Contants.Rest_api_v2 + "mp_push/behavior?";
         Rest restApi = new Rest(url);
         restApi.addParam("account", Utils.getTvUserId(BaseApplication.getmContext()));
-        long outTime = System.currentTimeMillis()/1000;
+
         //  关闭时的时间戳
         restApi.addParam("timestamp", outTime);
 
         restApi.addParam("busi_id", mBusiId);
         restApi.addParam("ip_addr", Utils.getPhoneIp(BaseApplication.getmContext()));
         restApi.addParam("mac_addr", MACUtils.getLocalMacAddressFromBusybox());
-        restApi.addParam("read_type", read_type); //默认：0（到达用户,小窗口弹出时）； 10（用户点击确定键进入大窗口页面）；
-
+        restApi.addParam("read_type", read_type);
+//默认：100（到达用户,小窗口弹出时）； 101（用户点击确定键进入大窗口页面）；102（用户点击关闭）; 103(小web打开全屏大WebView)
         restApi.addParam("in_webTime", mInTime); //当read_type=10时，该字段必传，用户进入web页面时间戳，单位秒
         restApi.addParam("stay_time", outTime-mInTime); //当read_type=10时，该字段必传，用户在web页面停留时长，（单位秒）
         Log.d("send", "sendUserBehavior: ----- 发送用户数据   in: "+mInTime+"   out:  "+outTime);
@@ -208,6 +213,7 @@ public class Utils {
 
             @Override
             public void onFailure(JSONObject rawJsonObj, int state, String msg) {
+
                 Log.d("userBehavior", "onSuccess: onFailure。。。");
             }
 
@@ -218,4 +224,65 @@ public class Utils {
         });
 
     }
+
+    public static String getVersionName(Context context, String packageName) throws Exception {
+        // 获取packagemanager的实例
+        PackageManager packageManager = context.getPackageManager();
+        PackageInfo packInfo = packageManager.getPackageInfo(packageName, 0);
+        String version = packInfo.versionName;
+        return version;
+    }
+
+    public static int getLocalVersion(Context ctx) {
+        int localVersion = 0;
+        try {
+            PackageInfo packageInfo = ctx.getApplicationContext()
+                    .getPackageManager()
+                    .getPackageInfo(ctx.getPackageName(), 0);
+            localVersion = packageInfo.versionCode;
+            Log.d("TAG", "本软件的版本号。。" + localVersion);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return localVersion;
+    }
+
+    public static String getLocalVersionName(Context ctx) {
+        String localVersion = "";
+        try {
+            PackageInfo packageInfo = ctx.getApplicationContext()
+                    .getPackageManager()
+                    .getPackageInfo(ctx.getPackageName(), 0);
+            localVersion = packageInfo.versionName;
+            Log.d("TAG", "本软件的版本号。。" + localVersion);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return localVersion;
+    }
+
+    public static int getApkVersionCode(Context context, String filePath) {
+
+        PackageManager packageManager = context.getPackageManager();
+        PackageInfo packageInfo = packageManager.getPackageArchiveInfo(filePath, GET_ACTIVITIES);
+        if (null != packageInfo) {
+            int versionCode = packageInfo.versionCode;
+            return versionCode;
+        } else {
+            return 0;
+        }
+    }
+
+    public static String getApkVersionName(Context context, String filePath) {
+
+        PackageManager packageManager = context.getPackageManager();
+        PackageInfo packageInfo = packageManager.getPackageArchiveInfo(filePath, GET_ACTIVITIES);
+        if (null != packageInfo) {
+            String versionName = packageInfo.versionName;
+            return versionName;
+        } else {
+            return null;
+        }
+    }
+
 }
