@@ -28,9 +28,9 @@ import okhttp3.Response;
 public class Rest {
 
 	private OkHttpClient client = new OkHttpClient.Builder()
-			.connectTimeout(10,TimeUnit.SECONDS)
-			.readTimeout(10,TimeUnit.SECONDS)
-			.writeTimeout(10,TimeUnit.SECONDS).build();
+			.connectTimeout(12,TimeUnit.SECONDS)
+			.readTimeout(12,TimeUnit.SECONDS)
+			.writeTimeout(12,TimeUnit.SECONDS).build();
 
 	private RequestBody formBody;
 

@@ -204,7 +204,6 @@ public class BootloaderService extends IntentService {
 //
 //        registerReceiver(mangoLiveReceiver, intentFilter); //注册广播
 
-
         try {
             //获取软件版本号，对应AndroidManifest.xml下android:versionCode
             versionCode = this.getPackageManager().
@@ -343,7 +342,7 @@ public class BootloaderService extends IntentService {
     }
 
     private void pullInLive() {
-
+        Log.d("mangguo", "   pullInLive: ----直播----  ");
         String url = Contants.Rest_api_v2_test + "mp_push/liveStrategy?";
         //测试地址
         Rest restApi = new Rest(url);
@@ -380,7 +379,7 @@ public class BootloaderService extends IntentService {
             @Override
             public void onFailure(JSONObject rawJsonObj, int state, String msg) {
                 Log.d(TAG, "onFailure: ");
-                nextLivePull();
+//                nextLivePull();
             }
 
             @Override
@@ -400,7 +399,7 @@ public class BootloaderService extends IntentService {
 
     //从服务器获取数据
     protected void pullMessages() {
-//        Log.d("mangguo", "pullMessages: --------  ");
+        Log.d("mangguo", "   pullMessages: ----非直播----  ");
         //正式地址
 //        String url = Contants.Rest_api_v2 + "mp_push/strategy?";
 
@@ -469,7 +468,7 @@ public class BootloaderService extends IntentService {
             public void onFailure(JSONObject rawJsonObj, int state, String msg) {
                 Log.i("httpCall", "Failure  " + msg);
                 Log.d(TAG, "pullMessages: " + Contants.DURATION_PING);
-                nextPull();
+//                nextPull();
             }
 
             @Override
@@ -718,6 +717,7 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
         } else {
             Log.d(TAG, "showAdsTemplate: down---" + adsBean.getFile_url());
             DownloadManager.dl(callback, adsBean.getFile_url());
+
         }
 
     }
@@ -1578,9 +1578,10 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
                                                  Map<String, String> dataMap = CRequest.URLRequest(url);
                                                  int act = Integer.parseInt(dataMap.get("act"));
                                                  String action = dataMap.get("Action");
+                                                 long outTime = System.currentTimeMillis() / 1000;
 
                                                  switch (act) {
-                                                     case 1:
+                                                     case 1:// 芒果详情
                                                          Log.d(TAG, "broadCastShow: " + url);
                                                          Intent intent1 = new Intent();
                                                          intent1.setAction(action);
@@ -1612,8 +1613,9 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
                                                          intent1.putExtra("jsonData", jsonString1);
 
                                                          sendBroadcast(intent1);
+                                                         sendUserBehavior(adsBean.getBusi_id() + "", 101, currentTime, outTime);
                                                          break;
-                                                     case 2:
+                                                     case 2:// 芒果专题
                                                          Intent intent2 = new Intent();
                                                          String nns_special_id = dataMap.get("nnsId");
                                                          String versionCode = dataMap.get("versionCode");
@@ -1639,6 +1641,7 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
 
                                                          intent2.putExtra("jsonData", jsonString2);
                                                          sendBroadcast(intent2);
+                                                         sendUserBehavior(adsBean.getBusi_id() + "", 101, currentTime, outTime);
                                                          break;
                                                      case 3:
                                                          Intent intent3 = new Intent();

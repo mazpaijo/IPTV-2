@@ -140,7 +140,7 @@ return;
                         });*/
 
                 }
-            }, 30000);
+            }, 32000);
 
 //             Api.getConfigure(context, new HttpCallback() {
 //                 @Override

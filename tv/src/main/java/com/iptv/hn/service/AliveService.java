@@ -3,23 +3,9 @@ package com.iptv.hn.service;
 import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
-import android.net.Uri;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
-
-import com.iptv.hn.Contants;
-import com.iptv.hn.utility.HttpCallback;
-import com.iptv.hn.utility.Rest;
-import com.iptv.hn.utility.Utils;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.File;
-
-import static com.iptv.hn.utility.Utils.getApkVersionCode;
 
 /**
  * Created by hs on 18/6/12.
@@ -28,7 +14,7 @@ import static com.iptv.hn.utility.Utils.getApkVersionCode;
 public class AliveService extends Service {
     //   http://ip:9090/mp_push/upgradeLog
     private static final String TAG = "AliveService";
-    private File file;
+   /* private File file;
 
     private Handler mHandler = new Handler();
     private Runnable mRunnable = new Runnable() {
@@ -70,7 +56,7 @@ public class AliveService extends Service {
             startService(intent);
 
         }
-    };
+    };*/
 
     @Override
     public int onStartCommand(Intent intent, final int flags, int startId) {
