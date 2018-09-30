@@ -379,7 +379,7 @@ public class BootloaderService extends IntentService {
             @Override
             public void onFailure(JSONObject rawJsonObj, int state, String msg) {
                 Log.d(TAG, "onFailure: ");
-//                nextLivePull();
+                nextLivePull();
             }
 
             @Override
@@ -468,7 +468,7 @@ public class BootloaderService extends IntentService {
             public void onFailure(JSONObject rawJsonObj, int state, String msg) {
                 Log.i("httpCall", "Failure  " + msg);
                 Log.d(TAG, "pullMessages: " + Contants.DURATION_PING);
-//                nextPull();
+                nextPull();
             }
 
             @Override
@@ -1360,7 +1360,6 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
         }
 
         webView.loadUrl(urlLoad);
-        Log.d(TAG, "onPageFinished:   11: " + urlLoad);
         Map<String, String> mapRequest = CRequest.URLRequest(urlLoad);
         final String isView = mapRequest.get("isView");
         Log.d(TAG, "showWebViewUrl:  小web： " + urlLoad + "   is= " + isView);
@@ -1381,8 +1380,9 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
 
                                      @Override
                                      public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                                         Log.d(TAG, "shouldOverrideUrlLoadingTest: " + url + "  view " + mAdsLayerView);
                                          showfirst++;
+                                         Log.d(TAG, "shouldOverrideUrlLoadingTest: " + url + "  view： " + mAdsLayerView+"   num: "+showfirst);
+
                                          // 步骤2：根据协议的参数，判断是否是所需要的url
                                          // 一般根据scheme（协议格式） & authority（协议名）判断（前两个参数）
                                          //假定传入进来的 url = "js://webview?arg1=111&arg2=222"（同时也是约定好的需要拦截的）
@@ -1546,7 +1546,7 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
                                                  } else {
                                                      //  没有 isPay 只有  jsonData
                                                      String packageName = toPackage;
-                                                     Log.d(TAG, "shouldOverrideUrlLoading: 其他跳转方法::" + toPackage);
+                                                     Log.d(TAG, "shouldOverrideUrlLoading: 其他跳转方法:" + toPackage);
                                                      //  未接收到包名时 返回
                                                      if (packageName == null) {
                                                          hideAdsDialog(context, adsBean);
@@ -1783,7 +1783,7 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
                                          if (url.equals(finalUrlLoad)) {
                                              sendMessageReceived(adsBean);// 上报小web数据
                                          }
-                                         if(showfirst==1){
+                                         if (showfirst == 1) {
                                              sendUserBehavior(adsBean.getBusi_id() + "", 1000, 0l, currentTime);//第二个页面加载完成
                                          }
                                      }
@@ -2245,7 +2245,7 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                    imgToWeb[0] +=1;
+                imgToWeb[0] += 1;
 
                 return super.shouldOverrideUrlLoading(view, url);
             }
@@ -2253,8 +2253,8 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
             @Override
             public void onPageFinished(WebView view, String murl) {
                 super.onPageFinished(view, murl);
-                Log.d(TAG, "onPageFinished:--- "+imgToWeb[0]);
-                if(imgToWeb[0]==1){
+                Log.d(TAG, "onPageFinished:--- " + imgToWeb[0]);
+                if (imgToWeb[0] == 1) {
                     sendUserBehavior(adsBean.getBusi_id() + "", 1000, 0l, currentTime);
                 }
             }
@@ -2312,7 +2312,6 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
 //                return false;
 //            }
 //        });
-
 
     }
 

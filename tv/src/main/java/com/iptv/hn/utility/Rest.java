@@ -177,7 +177,7 @@ public class Rest {
 
 			@Override
 			public void onFailure(final Call arg0, final IOException arg1) {
-				Log.d("httpCall", "onFailure: 请求错误:"+arg1);
+//				Log.d("httpCall", "onFailure: 请求错误:"+arg1);
 				Handler handler = new Handler(Looper.getMainLooper()) {
 					@Override
 					public void handleMessage(Message message) {

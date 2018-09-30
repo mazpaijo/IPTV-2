@@ -19,6 +19,7 @@ public class Contants {
 
     //  ---  上线正式地址
     public static final String Rest_api_v2 =  "http://124.232.135.246:9090/";
+    //  -- 测试接口
 //    public static final String Rest_api_v2 =  "http://124.232.135.241:8087/";
     //  测试接口
 //    public static final String Rest_api_v2_test =  "http://124.232.135.241:8087/";

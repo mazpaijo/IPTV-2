@@ -45,9 +45,7 @@
 
         <service android:name=".service.KeepAliveService"></service>
         <service android:name=".service.AliveService"></service>
-        <!--<service
-            android:name=".service.BootService"
-            android:exported="false" />-->
+
 
         <service android:name=".service.BootloaderService"
             android:enabled="true"
