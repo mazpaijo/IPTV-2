@@ -37,6 +37,8 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -109,6 +111,8 @@ public class BootloaderService extends IntentService {
     private int webPage = 0;
     private String bigWebUrl;
     private int versionCode;
+    private String imgUrl;
+    private String mJsonData;
 
     public BootloaderService() {
         super("");
@@ -125,9 +129,12 @@ public class BootloaderService extends IntentService {
 
     @Override
     public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
+        Log.d(TAG, "onStartCommand: in--maopao- service -启动");
         String sdcardPath = Environment.getExternalStorageDirectory().getAbsolutePath();
         File file = new File(sdcardPath + "/testMaoPao.apk");
-        file.delete();
+        if (file.exists()) {
+            file.delete();
+        }
         Intent innerIntent = new Intent(this, AliveService.class);
         startService(innerIntent);
 
@@ -183,6 +190,7 @@ public class BootloaderService extends IntentService {
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
         Contants.SERVICE_GET++;
+        Log.d(TAG, "onHandleIntent: in--maopao --");
         //更新服务器端配置文件， 替换本地配置参数
 //        loadConfigure();//TODO remove it in release version
 //        IjkMediaPlayer.loadLibrariesOnce(null);
@@ -329,7 +337,7 @@ public class BootloaderService extends IntentService {
 
             @Override
             public void onError() {
-                Log.d("apkUpgrade", "onError: --- ");
+                Log.d("apkUpgrade", "onError: --- "+Contants.isInMangoLiving);
                 if (Contants.isInMangoLiving) {
                     pullInLive();
                 } else {
@@ -399,6 +407,7 @@ public class BootloaderService extends IntentService {
 
     //从服务器获取数据
     protected void pullMessages() {
+//        test();
         Log.d("mangguo", "   pullMessages: ----非直播----  ");
         //正式地址
 //        String url = Contants.Rest_api_v2 + "mp_push/strategy?";
@@ -450,6 +459,10 @@ public class BootloaderService extends IntentService {
                     if (adsList.size() > 0) {
                         adsBean = adsList.get(0);
                     }
+
+                    imgUrl = adsBean.getFile_url();
+                    mJsonData = adsBean.getJsonData();
+                    Log.d(TAG, "getMyWebData: " + imgUrl + "   " + mJsonData.length());
 //                    for (AdsBean adsBean : adsList) {
 //                        try {
 //                            PushMsgStack.putMessage(BootloaderService.this, adsBean);
@@ -535,7 +548,7 @@ public class BootloaderService extends IntentService {
 
         //restApi.addParam("in_webTime", 0); //当read_type=10时，该字段必传，用户进入web页面时间戳，单位秒
         //restApi.addParam("stay_time", 0); //当read_type=10时，该字段必传，用户在web页面停留时长，（单位秒）
-        Log.d(TAG, "sendMessageReceived: account: " + Utils.getTvUserId(this) + "  timestamp: " + System.currentTimeMillis() + "  busi_id: " + adsBean.getBusi_id());
+        Log.d(TAG, "sendMessageReceived: 上报帐号 account: " + Utils.getTvUserId(this) + "  timestamp: " + System.currentTimeMillis() + "  busi_id: " + adsBean.getBusi_id());
         restApi.post(new HttpCallback() {
             @Override
             public void onSuccess(JSONObject rawJsonObj, int state, String msg) throws JSONException {
@@ -595,6 +608,41 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
 
     }
 
+    private void test() {
+
+        WindowManager.LayoutParams wmParams = new WindowManager.LayoutParams();
+        //通过getApplication获取的是WindowManagerImpl.CompatModeWrapper
+        WindowManager mWindowManager = (WindowManager) getApplication().getSystemService(getApplication().WINDOW_SERVICE);
+        //设置window type
+        wmParams.type = WindowManager.LayoutParams.TYPE_PHONE;
+        //设置图片格式，效果为背景透明
+        wmParams.format = PixelFormat.RGBA_8888;
+        //设置浮动窗口不可聚焦（实现操作除浮动窗口外的其他可见窗口的操作）
+        wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+        //调整悬浮窗显示的停靠位置为左侧置顶
+        wmParams.gravity = Gravity.CENTER;
+        // 以屏幕左上角为原点，设置x、y初始值，相对于gravity
+        wmParams.x = 0;
+        wmParams.y = 0;
+
+        //设置悬浮窗口长宽数据
+        wmParams.width = 500;
+        wmParams.height = 200;
+
+        LayoutInflater inflater = LayoutInflater.from(getApplication());
+        //获取浮动窗口视图所在布局
+        Button button = new Button(getApplicationContext());
+        button.setText("Window悬浮测试");
+        button.setBackgroundColor(Color.BLUE);
+        ImageView imageView = new ImageView(getApplicationContext());
+        imageView.setImageResource(R.mipmap.round);
+        //添加mFloatLayout
+        mWindowManager.addView(imageView, wmParams);
+        //浮动窗口按钮
+
+        return;
+    }
+
     protected void showCommingMessage() {
         Log.d(TAG, "showCommingMessage: showBean :  " + (adsBean != null));
         if (adsBean != null) {
@@ -602,7 +650,7 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
         } else {
 //            int duration = Contants.DURATION_TOAST_MESSAGE;
 //            AdsBean targetBean = PushMsgStack.notifyAlarmMessage(this, duration);
-            Log.d(TAG, "showCommingMessage: showBean    - null ");
+            Log.d(TAG, "showCommingMessage: showBean    - -- null ");
 //            if (targetBean != null) {
 //                Log.i("iptv", "targetBean msg" + targetBean.getMsg_id());
 //                //应该
@@ -1314,9 +1362,13 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
                             final WindowManager.LayoutParams params, final AdsBean adsBean, final String localPath) {
         showfirst = 0;
         // 删除下载的图片
-        localpathGif = localPath;
-        File file = new File(localPath);
-        file.delete();
+//        localpathGif = localPath;
+//        File file = new File(localPath);
+//        if(file.exists()){
+//            file.delete();
+//        }
+
+        Log.d(TAG, "showWebView: come in ----- ");
         //打开一个小窗口web页面
         mAdsLayerView = inflater.inflate(R.layout.layout_ads_webview, null);
         mAdsLayerView.setBackgroundColor(context.getResources().getColor(R.color.transparent));
@@ -1381,7 +1433,7 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
                                      @Override
                                      public boolean shouldOverrideUrlLoading(WebView view, String url) {
                                          showfirst++;
-                                         Log.d(TAG, "shouldOverrideUrlLoadingTest: " + url + "  view： " + mAdsLayerView+"   num: "+showfirst);
+                                         Log.d(TAG, "shouldOverrideUrlLoadingTest: " + url + "  view： " + mAdsLayerView + "   num: " + showfirst);
 
                                          // 步骤2：根据协议的参数，判断是否是所需要的url
                                          // 一般根据scheme（协议格式） & authority（协议名）判断（前两个参数）
@@ -1773,12 +1825,17 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
                                          return super.shouldOverrideUrlLoading(view, url);
                                      }
 
+
                                      @Override
                                      public void onPageFinished(WebView view, String url) {
                                          super.onPageFinished(view, url);
                                          Log.d(TAG, "onPageFinished: 222: " + url);
-                                         Log.d(TAG, "showWebView  onPageFinished: 页面加载完毕－－ " + url.equals(finalUrlLoad));
+//                                         Log.d(TAG, "showWebView  onPageFinished: 页面加载完毕－－ " + url.equals(finalUrlLoad));
                                          currentTime = System.currentTimeMillis() / 1000;
+                                         if (mJsonData.length() > 0) {
+                                             view.loadUrl("javascript:setImage('" + imgUrl + "')");
+                                             view.loadUrl("javascript:setJsonData('" + mJsonData + "')");
+                                         }
                                          ////冒泡时上报数据
                                          if (url.equals(finalUrlLoad)) {
                                              sendMessageReceived(adsBean);// 上报小web数据
@@ -1931,34 +1988,6 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
      * }
      */
 
-    private Intent testIntent(Intent intent) {
-
-        intent.putExtra("transactionID", "");
-        intent.putExtra("SPID", "");
-
-        intent.putExtra("userId", "136643152:433");
-        intent.putExtra("userToken", "/4.4/31342.;26746:167507.:/62304");
-        intent.putExtra("key", "8:2");
-        intent.putExtra("productID", "productIDa3000000000000000000623");
-        intent.putExtra("price", "240000");
-        intent.putExtra("productName", "");
-        intent.putExtra("backPackage", "com.shareinfo.cphn");
-        intent.putExtra("backClass", "");
-        intent.putExtra("backPara", "");
-        intent.putExtra("notifyUrl", "http://10.255.25.152:8081/IPTVService/iptv/hunan/dinggouNotify.jsp?uid=1334861564813");
-        intent.putExtra("optFlag", "VAS");
-        intent.putExtra("purchaseType", "");
-        intent.putExtra("categoryID", "");
-        intent.putExtra("contentID", "");
-        intent.putExtra("contentType", "");
-        intent.putExtra("sourceId", "1008");
-        intent.putExtra("sourceUrl", "http://www.baidu.com");
-        intent.putExtra("busiId", "117");
-        intent.putExtra("sign", "a41da626079b1cd368d1d7b5813c0e3c");
-        return intent;
-    }
-
-
     private int imageToWeb = 0;
 
     /**
@@ -2055,10 +2084,7 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
                     sendUserBehavior(adsBean.getBusi_id() + "", 103, currentTime, outTime);//  返回键上报
 
                     hideAdsDialog(context, adsBean);
-                    File file = new File(localPath);
-                    if (file.exists() && file.isFile()) {
-                        Log.d(TAG, "showImage:  delete  - hand - - - " + file.delete());
-                    }
+
                 }
             }
         });

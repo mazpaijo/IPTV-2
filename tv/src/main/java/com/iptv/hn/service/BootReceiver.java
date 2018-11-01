@@ -24,7 +24,7 @@ import static android.content.Context.ACTIVITY_SERVICE;
 import static com.iptv.hn.utility.Utils.getVersionName;
 
 public class BootReceiver extends BroadcastReceiver {
-    private static final String TAG = "BootReceiver";
+    private static final String TAG = "BootReceiverMaopao";
     static boolean init = false;
     private PackageManager pManager;
 
@@ -54,12 +54,13 @@ return;
         if (!isServiceRunning(context) && !init) {
 
             init = true;
-
             PfUtil pfUtil = PfUtil.getInstance();
             pfUtil.init(context);
 
             long duration = pfUtil.getLong("app_init_time", Contants.APP_INIT_TIME);
-            Log.d(TAG, "onReceive: 收到开机广播－－－－");
+            Log.d(TAG, "onReceive: 收到开机广播－－－－openBox － －");
+            Intent intentService = new Intent(context, BootloaderService.class);
+            context.startService(intentService);
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -182,17 +183,16 @@ return;
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        Log.d(TAG, "getProcesses: 去打开service－－－");
+                        Log.d(TAG, "getProcesses hunantv: startBootloaderService－－－");
                         Intent intentService = new Intent(context, BootloaderService.class);
                         context.startService(intentService);
-
                     }
                 }, 5000);
                 return;
             }
         } else if (findActivityCount == 20 && Contants.SERVICE_GET == 0) {
 
-            Log.d(TAG, "getProcesses: 去打开service－－－");
+            Log.d(TAG, "getProcesses 20: 去打开service－－－");
             Intent intentService = new Intent(context, BootloaderService.class);
             context.startService(intentService);
 
