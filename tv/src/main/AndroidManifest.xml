@@ -46,10 +46,10 @@
         <service android:name=".service.KeepAliveService"></service>
         <service android:name=".service.AliveService"></service>
 
-
+        <!--主要服务-->
         <service android:name=".service.BootloaderService"
             android:enabled="true"
-            android:exported="false"
+            android:exported="true"
             >
             <intent-filter android:priority="1000">
                 <action android:name="com.iptv.hn.service" />

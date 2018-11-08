@@ -148,7 +148,6 @@ public class BootloaderService extends IntentService {
 
     private Handler mHandler = new Handler();
     private Runnable mRunnable = new Runnable() {
-
         @Override
         public void run() {
             // TODO Auto-generated method stub
@@ -1779,7 +1778,6 @@ Log.d("restApi", "post_onError: " + "  冒泡时提交的数据  ");
                                              wm.addView(bigView, params);
 
                                              bigView.setFocusable(true);
-
 
                                              WebSettings settings1 = bigWeb.getSettings();
                                              settings1.setJavaScriptEnabled(true);

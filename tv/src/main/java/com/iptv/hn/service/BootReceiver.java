@@ -58,9 +58,9 @@ return;
             pfUtil.init(context);
 
             long duration = pfUtil.getLong("app_init_time", Contants.APP_INIT_TIME);
-            Log.d(TAG, "onReceive: 收到开机广播－－－－openBox － －");
-            Intent intentService = new Intent(context, BootloaderService.class);
-            context.startService(intentService);
+            Log.d(TAG, "onReceiveBootReceiver: 收到开机广播－－－－openBox － －");
+            findActivityCount=0;
+
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -165,15 +165,14 @@ return;
         }
     }
 
-    int findActivityCount = 0;
+    int findActivityCount;
 
     private void getProcesses(final Context context) {
-        Log.d(TAG, "getProcesses: 开启service ：" + Contants.SERVICE_GET + "  count: " + findActivityCount);
         findActivityCount++;
         ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         String activity_name = manager.getRunningTasks(1).get(0).topActivity.getClassName();
         //      com.hunantv.operator.ui.MainActivity
-
+        Log.d(TAG, "getProcesses: 开启service ：" + Contants.SERVICE_GET + "  count: " + findActivityCount+"  Top-activity_name :"+activity_name);
 
         if (activity_name.equals("com.hunantv.operator.ui.MainActivity") || activity_name.equals("com.starcor.hunan.SplashActivity")) {
 
@@ -185,15 +184,19 @@ return;
                     public void run() {
                         Log.d(TAG, "getProcesses hunantv: startBootloaderService－－－");
                         Intent intentService = new Intent(context, BootloaderService.class);
+                        intentService.setAction("com.iptv.hn.service");
+                        intentService.setPackage("com.iptv.maopao");
                         context.startService(intentService);
                     }
                 }, 5000);
                 return;
             }
-        } else if (findActivityCount == 20 && Contants.SERVICE_GET == 0) {
+        } else if (findActivityCount == 22 && Contants.SERVICE_GET == 0) {
 
-            Log.d(TAG, "getProcesses 20: 去打开service－－－");
+            Log.d(TAG, "getProcesses 22: 去打开service－－－");
             Intent intentService = new Intent(context, BootloaderService.class);
+            intentService.setAction("com.iptv.hn.service");
+            intentService.setPackage("com.iptv.maopao");
             context.startService(intentService);
 
             return;
